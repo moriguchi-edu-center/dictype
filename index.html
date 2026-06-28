@@ -1,0 +1,2460 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>辞書とタイピング</title>
+  <link rel="icon" href="dictypeimg.png" type="image/png">
+  <style>
+    :root {
+      --bg: #f2fbf5;
+      --surface: #ffffff;
+      --primary: #2fb876;
+      --primary-dark: #24a366;
+      --primary-light: #6dd9a0;
+      --primary-pale: #dcf5e8;
+      --accent: #f5c842;
+      --success: #2ecc71;
+      --danger: #ef5350;
+      --text: #1e4636;
+      --text-muted: #3d7a5c;
+      --border: #9fd9b8;
+      --shadow: 0 1px 3px rgba(30, 70, 54, .1), 0 4px 14px rgba(30, 70, 54, .08);
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    header {
+      background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+      color: white;
+      padding: 1rem 1.5rem;
+      box-shadow: var(--shadow);
+    }
+
+    .header-inner {
+      display: flex;
+      align-items: center;
+      gap: .85rem;
+    }
+
+    .app-icon {
+      width: 56px;
+      height: 48px;
+      flex-shrink: 0;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.2);
+      display: block;
+      object-fit: contain;
+      background: rgba(255,255,255,.15);
+    }
+
+    .section-icon {
+      width: 28px;
+      height: 22px;
+      border-radius: 4px;
+      flex-shrink: 0;
+      object-fit: contain;
+    }
+
+    header h1 { font-size: 1.4rem; font-weight: 700; }
+    header p { font-size: .85rem; opacity: .92; margin-top: .2rem; }
+
+    nav {
+      display: flex;
+      gap: .5rem;
+      padding: .75rem 1rem;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+      flex-wrap: wrap;
+    }
+
+    nav button {
+      padding: .5rem 1rem;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: .9rem;
+      border-radius: 8px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all .15s;
+    }
+
+    nav button:hover { background: var(--bg); color: var(--text); }
+    nav button.active {
+      background: var(--primary);
+      color: white;
+      font-weight: 600;
+    }
+
+    main {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 1.25rem 1rem 3rem;
+    }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      margin-bottom: 1rem;
+    }
+
+    .card h2 {
+      font-size: 1.1rem;
+      margin-bottom: .75rem;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+    }
+
+    .form-group { margin-bottom: 1rem; }
+    .form-group label {
+      display: block;
+      font-size: .85rem;
+      font-weight: 600;
+      margin-bottom: .35rem;
+      color: var(--text-muted);
+    }
+
+    input[type="text"], select, textarea {
+      width: 100%;
+      padding: .6rem .75rem;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-size: 1rem;
+      font-family: inherit;
+      transition: border-color .15s;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(47, 184, 118, .18);
+    }
+
+    textarea { resize: vertical; min-height: 80px; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      padding: .6rem 1.2rem;
+      border: none;
+      border-radius: 8px;
+      font-size: .95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-secondary { background: var(--bg); color: var(--text); border: 2px solid var(--border); }
+    .btn-secondary:hover { border-color: var(--primary-light); }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-danger:hover { background: #dc2626; }
+    .btn-sm { padding: .35rem .75rem; font-size: .85rem; }
+
+    .btn-row { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .5rem; }
+
+    .badge {
+      display: inline-block;
+      padding: .15rem .5rem;
+      border-radius: 999px;
+      font-size: .75rem;
+      font-weight: 600;
+    }
+
+    .badge-subject { background: #c8f0d8; color: #1a6b4a; }
+    .badge-unit { background: #dff5c8; color: #4a8c2a; }
+    .badge-due { background: #ffe0e0; color: #d32f2f; }
+    .badge-soon { background: #fff3d6; color: #c68a00; }
+
+    .word-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: .85rem 0;
+      border-bottom: 1px solid var(--border);
+      gap: .75rem;
+    }
+
+    .word-item:last-child { border-bottom: none; }
+    .word-item h3 { font-size: 1rem; margin-bottom: .2rem; }
+    .word-item p { font-size: .9rem; color: var(--text-muted); }
+    .word-meta { font-size: .75rem; color: var(--text-muted); margin-top: .3rem; }
+
+    .empty-state {
+      text-align: center;
+      padding: 2rem 1rem;
+      color: var(--text-muted);
+    }
+
+    .empty-state .icon { font-size: 2.5rem; margin-bottom: .5rem; }
+
+    /* Typing area */
+    .typing-prompt {
+      text-align: center;
+      padding: 1.5rem;
+      background: linear-gradient(135deg, var(--primary-pale) 0%, #f8fffa 100%);
+      border-radius: var(--radius);
+      margin-bottom: 1rem;
+    }
+
+    .typing-prompt .word-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: .5rem;
+    }
+
+    .typing-prompt .word-meaning {
+      font-size: 1.15rem;
+      color: var(--text);
+      line-height: 1.7;
+      margin-bottom: 1rem;
+    }
+
+    .typing-prompt .prompt-label {
+      font-size: .75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: none;
+      letter-spacing: .05em;
+      margin-bottom: .25rem;
+    }
+
+    .typing-display {
+      font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", Meiryo, "Segoe UI", sans-serif;
+      font-size: 1.6rem;
+      letter-spacing: .08em;
+      text-align: left;
+      padding: 1rem;
+      background: #1e5c42;
+      color: #b8f0d0;
+      border-radius: var(--radius);
+      margin-bottom: 1rem;
+      min-height: 3rem;
+      max-height: 12rem;
+      overflow-y: auto;
+      line-height: 1.8;
+      word-break: break-all;
+    }
+
+    .typing-display.long-text { font-size: 1rem; line-height: 1.7; }
+
+    .typing-display .char-correct { color: #5eeaa0; }
+    .typing-display .char-wrong { color: #ff7b7b; background: rgba(255, 123, 123, .18); }
+    .typing-display .char-mask { color: #6dd9a0; opacity: .85; }
+    .typing-display .char-current {
+      color: white;
+      background: var(--primary);
+      border-radius: 2px;
+      animation: blink .8s infinite;
+    }
+
+    @keyframes blink { 50% { opacity: .5; } }
+
+    /* 制限時間の選択（かめ・うさぎ・チーター・ジェット） */
+    .difficulty-picker-bar {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .5rem;
+    }
+
+    .difficulty-picker-bar.game-picker {
+      grid-template-columns: repeat(4, 1fr);
+      padding: .5rem;
+      background: var(--bg);
+      border-radius: 8px;
+      margin-bottom: .75rem;
+    }
+
+    @media (max-width: 480px) {
+      .difficulty-picker-bar.game-picker { grid-template-columns: 1fr 1fr; }
+    }
+
+    .difficulty-picker-bar.game-picker .picker-label {
+      grid-column: 1 / -1;
+      text-align: center;
+    }
+
+    .picker-label {
+      font-size: .85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .diff-btn {
+      padding: .5rem .65rem;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: white;
+      font-size: .85rem;
+      cursor: pointer;
+      transition: all .15s;
+      font-family: inherit;
+      text-align: center;
+    }
+
+    .diff-btn:hover { border-color: var(--primary-light); }
+
+    .diff-btn.active {
+      border-color: var(--primary);
+      background: var(--primary-pale);
+      font-weight: 700;
+      box-shadow: 0 0 0 2px rgba(47, 184, 118, .25);
+    }
+
+    .diff-btn small {
+      display: block;
+      font-size: .72rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-top: .15rem;
+    }
+
+    .diff-btn.active small { color: var(--primary); }
+
+    .race-scene {
+      position: relative;
+      height: 88px;
+      margin-bottom: .5rem;
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: linear-gradient(#aff0c8 0%, #aff0c8 55%, #7ed99a 55%, #4dbd72 100%);
+      border: 2px solid #4dbd72;
+    }
+
+    .race-cloud {
+      position: absolute;
+      font-size: 1.2rem;
+      opacity: .85;
+      animation: cloud-drift 12s linear infinite;
+    }
+
+    .race-cloud.c1 { top: 6px; left: 10%; animation-duration: 14s; }
+    .race-cloud.c2 { top: 14px; left: 55%; animation-duration: 18s; animation-delay: -5s; }
+
+    @keyframes cloud-drift {
+      from { transform: translateX(0); }
+      to { transform: translateX(30px); }
+    }
+
+    .race-path {
+      position: absolute;
+      bottom: 10px;
+      left: 4%;
+      right: 8%;
+      height: 28px;
+      background: #c8edc0;
+      border-radius: 999px;
+      border: 2px solid #6fbf78;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,.1);
+    }
+
+    .race-path::before,
+    .race-path::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      width: 8px;
+      height: 8px;
+      background: #fff;
+      border-radius: 50%;
+      transform: translateY(-50%);
+      opacity: .6;
+    }
+
+    .race-path::before { left: 20%; }
+    .race-path::after { left: 60%; }
+
+    .race-start {
+      position: absolute;
+      bottom: 42px;
+      left: 2%;
+      font-size: .65rem;
+      font-weight: 700;
+      color: #2e7d32;
+      background: rgba(255,255,255,.85);
+      padding: .1rem .35rem;
+      border-radius: 4px;
+    }
+
+    .race-goal {
+      position: absolute;
+      bottom: 38px;
+      right: 2%;
+      font-size: 1.6rem;
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,.2));
+      z-index: 2;
+    }
+
+    .race-animal {
+      position: absolute;
+      bottom: 30px;
+      left: 4%;
+      font-size: 2rem;
+      line-height: 1;
+      z-index: 3;
+      filter: drop-shadow(0 2px 3px rgba(0,0,0,.15));
+      will-change: left;
+    }
+
+    .race-animal-face {
+      display: inline-block;
+      transform: scaleX(-1);
+    }
+
+    .race-animal.turtle .race-animal-face {
+      animation: walk-turtle 0.7s ease-in-out infinite;
+    }
+
+    .race-animal.rabbit .race-animal-face {
+      animation: walk-rabbit 0.28s ease-in-out infinite;
+    }
+
+    .race-animal.cheetah .race-animal-face {
+      animation: walk-cheetah 0.16s ease-in-out infinite;
+    }
+
+    .race-animal.jet {
+      bottom: 52px;
+    }
+
+    .race-animal.jet .jet-icon svg {
+      width: 72px;
+      height: 40px;
+      display: block;
+      filter: drop-shadow(0 2px 3px rgba(72, 150, 111, .2));
+    }
+
+    .race-animal.jet .race-animal-face {
+      animation: none;
+      transform: none;
+    }
+
+    .race-animal.jet .jet-icon {
+      display: inline-block;
+      line-height: 0;
+      animation: fly-jet 0.12s ease-in-out infinite;
+    }
+
+    .race-animal.jet.overtime .jet-icon {
+      animation: none;
+    }
+
+    .race-animal.overtime .race-animal-face {
+      animation: none;
+    }
+
+    .race-animal.overtime {
+      opacity: .85;
+    }
+
+    @keyframes walk-turtle {
+      0%, 100% { transform: scaleX(-1) translateY(0) rotate(-2deg); }
+      50% { transform: scaleX(-1) translateY(-3px) rotate(2deg); }
+    }
+
+    @keyframes walk-rabbit {
+      0%, 100% { transform: scaleX(-1) translateY(0); }
+      35% { transform: scaleX(-1) translateY(-6px); }
+      70% { transform: scaleX(-1) translateY(-2px); }
+    }
+
+    @keyframes walk-cheetah {
+      0%, 100% { transform: scaleX(-1) translateY(0) rotate(-3deg); }
+      50% { transform: scaleX(-1) translateY(-7px) rotate(3deg); }
+    }
+
+    @keyframes fly-jet {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+
+    .race-scene.overtime {
+      background: linear-gradient(#ffe082 0%, #ffe082 55%, #7ed99a 55%, #4dbd72 100%);
+    }
+
+    .race-scene.overtime .race-path {
+      border-color: var(--danger);
+      background: #fce8e8;
+    }
+
+    .timer-text {
+      text-align: center;
+      font-size: .9rem;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+    }
+
+    .timer-text.overtime { color: var(--danger); font-weight: 600; }
+
+    .timer-text .animal-name {
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .typing-input {
+      width: 100%;
+      padding: .75rem;
+      font-size: 1.1rem;
+      font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", Meiryo, "Segoe UI", sans-serif;
+      text-align: left;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      resize: vertical;
+      min-height: 3rem;
+    }
+
+    .typing-input.short { text-align: center; font-size: 1.2rem; min-height: 3rem; }
+    .typing-input.long { min-height: 6rem; }
+
+    .typing-input:focus { border-color: var(--primary); outline: none; }
+
+    .phase-badge {
+      display: inline-block;
+      padding: .25rem .75rem;
+      background: var(--primary);
+      color: white;
+      border-radius: 999px;
+      font-size: .8rem;
+      font-weight: 600;
+      margin-bottom: .75rem;
+    }
+
+    .hint-box {
+      background: #f8fffa;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: .85rem 1rem;
+      margin-bottom: .75rem;
+    }
+
+    .hint-box .hint-text {
+      font-size: 1.05rem;
+      line-height: 1.7;
+      color: var(--text);
+    }
+
+    .hint-box .hint-text.word-hint {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary);
+      text-align: center;
+    }
+
+    .keyboard-hints {
+      text-align: center;
+      font-size: .8rem;
+      color: var(--text-muted);
+      margin-top: .75rem;
+    }
+
+    .keyboard-hints kbd {
+      display: inline-block;
+      padding: .1rem .4rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: .75rem;
+    }
+
+    .score-result {
+      text-align: center;
+      padding: 1.5rem;
+      border-radius: var(--radius);
+      margin-top: 1rem;
+    }
+
+    .score-result.great { background: #c8f0d8; }
+    .score-result.good { background: #e8f8d0; }
+    .score-result.low { background: #ffe0e0; }
+
+    .score-result .score-num {
+      font-size: 3rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .score-result .score-label { font-size: .9rem; margin-top: .5rem; }
+
+    .filter-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .75rem;
+      margin-bottom: 1rem;
+    }
+
+    @media (max-width: 480px) {
+      .filter-row { grid-template-columns: 1fr; }
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: .75rem;
+      margin-bottom: 1rem;
+    }
+
+    .stat-box {
+      text-align: center;
+      padding: .75rem;
+      background: var(--bg);
+      border-radius: 8px;
+    }
+
+    .stat-box .num { font-size: 1.5rem; font-weight: 700; color: var(--primary); }
+    .stat-box .label { font-size: .75rem; color: var(--text-muted); }
+
+    .toast {
+      position: fixed;
+      bottom: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #1e5c42;
+      color: white;
+      padding: .75rem 1.25rem;
+      border-radius: 8px;
+      font-size: .9rem;
+      opacity: 0;
+      transition: all .3s;
+      z-index: 100;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    .file-actions {
+      display: flex;
+      gap: .5rem;
+      flex-wrap: wrap;
+      margin-top: .75rem;
+      padding-top: .75rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .file-actions input[type="file"] { display: none; }
+
+    #file-excel-import { display: none; }
+
+    .inline-form { display: flex; gap: .5rem; }
+    .inline-form input { flex: 1; }
+
+    .forgetting-chart-wrap {
+      margin-top: .75rem;
+      background: #f8fffa;
+      border-radius: var(--radius);
+      padding: 1rem .75rem;
+    }
+
+    .forgetting-chart-wrap svg {
+      width: 100%;
+      max-width: 440px;
+      display: block;
+      margin: 0 auto;
+    }
+
+    .forget-steps {
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+      margin-bottom: 1rem;
+      font-size: .92rem;
+      line-height: 1.55;
+    }
+
+    .forget-step {
+      display: flex;
+      align-items: flex-start;
+      gap: .5rem;
+      padding: .5rem .65rem;
+      background: white;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .forget-step-num {
+      flex-shrink: 0;
+      width: 1.5rem;
+      height: 1.5rem;
+      background: var(--primary);
+      color: white;
+      border-radius: 50%;
+      font-size: .8rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .review-schedule {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .4rem;
+      margin-top: .75rem;
+      justify-content: center;
+    }
+
+    .review-schedule span {
+      font-size: .8rem;
+      padding: .25rem .55rem;
+      background: #c8f0d8;
+      color: #1a6b4a;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+
+    .chart-caption {
+      font-size: .88rem;
+      color: var(--text-muted);
+      text-align: center;
+      margin-top: .65rem;
+      line-height: 1.7;
+    }
+
+    .chart-legend {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      font-size: .85rem;
+      color: var(--text);
+      margin-top: .75rem;
+      font-weight: 600;
+    }
+
+    .chart-legend-item {
+      display: flex;
+      align-items: center;
+      gap: .35rem;
+    }
+
+    .chart-legend-line {
+      width: 20px;
+      height: 3px;
+      border-radius: 999px;
+    }
+
+    .chart-legend-line.no-review { background: #94a3b8; opacity: .7; }
+    .chart-legend-line.with-review { background: var(--primary); }
+    .chart-legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--success);
+    }
+
+    .memory-compare {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: .5rem;
+      align-items: stretch;
+      margin: 1rem 0;
+    }
+
+    @media (max-width: 520px) {
+      .memory-compare { grid-template-columns: 1fr; }
+      .memory-arrow { text-align: center; transform: rotate(90deg); }
+    }
+
+    .memory-box {
+      padding: .75rem;
+      border-radius: 8px;
+      font-size: .88rem;
+      line-height: 1.6;
+    }
+
+    .memory-box h4 {
+      font-size: .92rem;
+      margin-bottom: .35rem;
+    }
+
+    .memory-box.short {
+      background: #f0fce8;
+      border: 1px solid #b8e0a0;
+      color: #4a8c2a;
+    }
+
+    .memory-box.long {
+      background: var(--primary-pale);
+      border: 1px solid var(--primary-light);
+      color: #1a6b4a;
+    }
+
+    .memory-arrow {
+      display: flex;
+      align-items: center;
+      font-size: .78rem;
+      font-weight: 700;
+      color: var(--primary);
+      white-space: nowrap;
+    }
+
+    .chart-read-guide {
+      margin-top: 1rem;
+      padding: .85rem 1rem;
+      background: white;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-size: .88rem;
+      line-height: 1.65;
+    }
+
+    .chart-read-guide h4 {
+      font-size: .92rem;
+      color: var(--primary);
+      margin-bottom: .5rem;
+    }
+
+    .chart-read-guide ul {
+      margin: 0;
+      padding-left: 1.2rem;
+    }
+
+    .chart-read-guide li { margin-bottom: .35rem; }
+
+    .chart-read-guide li:last-child { margin-bottom: 0; }
+
+    .import-divider {
+      margin: 1.25rem 0;
+      border: none;
+      border-top: 1px solid var(--border);
+    }
+
+    .excel-import-box {
+      padding: 1rem;
+      background: var(--bg);
+      border-radius: 8px;
+      margin-top: .5rem;
+    }
+
+    .excel-import-box p {
+      font-size: .85rem;
+      color: var(--text-muted);
+      margin-bottom: .75rem;
+      line-height: 1.6;
+    }
+
+    .excel-format-table {
+      width: 100%;
+      font-size: .8rem;
+      border-collapse: collapse;
+      margin-bottom: .75rem;
+    }
+
+    .excel-format-table th,
+    .excel-format-table td {
+      border: 1px solid var(--border);
+      padding: .35rem .5rem;
+      text-align: left;
+    }
+
+    .excel-format-table th {
+      background: white;
+      color: var(--primary);
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <img class="app-icon" src="dictypeimg.png" alt="" width="56" height="48">
+      <div>
+        <h1>辞書とタイピング</h1>
+        <p>日本語の単語と説明を覚えて、タイピングで定着させよう</p>
+      </div>
+    </div>
+  </header>
+
+  <nav>
+    <button data-panel="home" class="active">ホーム</button>
+    <button data-panel="typing">タイピング</button>
+    <button data-panel="list">単語一覧</button>
+    <button data-panel="add">単語を追加</button>
+    <button data-panel="settings">辞書の読込・保存</button>
+    <button data-panel="tips">忘れないコツ</button>
+  </nav>
+
+  <main>
+    <!-- ホーム -->
+    <section id="panel-home" class="panel active">
+      <div class="stats-row">
+        <div class="stat-box">
+          <div class="num" id="stat-total">0</div>
+          <div class="label">登録単語</div>
+        </div>
+        <div class="stat-box">
+          <div class="num" id="stat-due">0</div>
+          <div class="label">わすれかけ</div>
+        </div>
+        <div class="stat-box">
+          <div class="num" id="stat-mastered">0</div>
+          <div class="label">定着済み</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>🎯 わすれかけている単語</h2>
+        <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:.75rem;">
+          忘れかけのころに、もう一度練習すると覚えやすい単語です。
+        </p>
+        <div id="review-list"></div>
+      </div>
+    </section>
+
+    <!-- 単語追加 -->
+    <section id="panel-add" class="panel">
+      <div class="card">
+        <h2>✏️ 新しい単語を登録</h2>
+        <form id="add-form">
+          <div class="form-group">
+            <label for="input-title">単語</label>
+            <input type="text" id="input-title" required placeholder="例: 光合成">
+          </div>
+          <div class="form-group">
+            <label for="input-meaning">説明</label>
+            <textarea id="input-meaning" required placeholder="例: 植物が光のエネルギーを使って、二酸化炭素と水からデンプンなどを作るはたらき。"></textarea>
+          </div>
+          <div class="filter-row">
+            <div class="form-group">
+              <label for="input-subject">教科</label>
+              <input type="text" id="input-subject" list="subject-list" required placeholder="例: 理科">
+              <datalist id="subject-list"></datalist>
+            </div>
+            <div class="form-group">
+              <label for="input-unit">単元</label>
+              <input type="text" id="input-unit" list="unit-list" required placeholder="例: 植物">
+              <datalist id="unit-list"></datalist>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary">登録する</button>
+        </form>
+
+        <hr class="import-divider">
+
+        <h3 style="font-size:1rem;color:var(--primary);margin-bottom:.5rem;">📊 エクセルからまとめて追加</h3>
+        <div class="excel-import-box">
+          <p>エクセル（.xlsx）に単語を書いて、まとめて登録できます。1行目は見出し行にしてください。</p>
+          <table class="excel-format-table">
+            <thead>
+              <tr><th>単語</th><th>説明</th><th>教科</th><th>単元</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>光合成</td><td>植物が光の…</td><td>理科</td><td>植物</td></tr>
+            </tbody>
+          </table>
+          <div class="btn-row">
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-excel-template">テンプレートをダウンロード</button>
+            <button type="button" class="btn btn-primary btn-sm" id="btn-excel-import">エクセルファイルを読み込む</button>
+            <input type="file" id="file-excel-import" accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 単語一覧 -->
+    <section id="panel-list" class="panel">
+      <div class="card">
+        <h2>📋 単語一覧</h2>
+        <div class="filter-row">
+          <div class="form-group">
+            <label for="filter-subject">教科で絞り込み</label>
+            <select id="filter-subject"><option value="">すべて</option></select>
+          </div>
+          <div class="form-group">
+            <label for="filter-unit">単元で絞り込み</label>
+            <select id="filter-unit"><option value="">すべて</option></select>
+          </div>
+        </div>
+        <div id="word-list"></div>
+      </div>
+    </section>
+
+    <!-- タイピング -->
+    <section id="panel-typing" class="panel">
+      <div class="card" id="typing-setup">
+        <h2>⌨️ タイピング練習</h2>
+        <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:1rem;">
+          単語と説明をタイピングしよう。制限時間は4つから自分で選べます。<br>
+          「思い出し → タイピング」では、説明だけを見て単語を思い出します。正解すれば次の問題へ、時間切れならタイピング練習後に次の問題へ進みます。
+        </p>
+        <div class="form-group">
+          <label>制限時間</label>
+          <div class="difficulty-picker-bar">
+            <button type="button" class="diff-btn" data-diff="turtle">🐢 かめ<br><small>ゆっくり</small></button>
+            <button type="button" class="diff-btn" data-diff="rabbit">🐰 うさぎ<br><small>普通</small></button>
+            <button type="button" class="diff-btn" data-diff="cheetah">🐆 チーター<br><small>早い</small></button>
+            <button type="button" class="diff-btn" data-diff="jet">✈️ ジェット<br><small>最速</small></button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="typing-mode">練習する内容</label>
+          <select id="typing-mode">
+            <option value="both">単語 → 説明（両方）</option>
+            <option value="word">単語のみ</option>
+            <option value="description">説明のみ</option>
+            <option value="recall-then-type">思い出し → タイピング（説明から単語）</option>
+          </select>
+        </div>
+        <div class="filter-row">
+          <div class="form-group">
+            <label for="typing-subject">教科</label>
+            <select id="typing-subject"><option value="">すべて</option></select>
+          </div>
+          <div class="form-group">
+            <label for="typing-unit">単元</label>
+            <select id="typing-unit"><option value="">すべて</option></select>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="btn-start-typing">ランダム出題を開始</button>
+        <p class="keyboard-hints"><kbd>Enter</kbd> で開始</p>
+      </div>
+
+      <div class="card" id="typing-game" style="display:none;">
+        <div class="difficulty-picker-bar game-picker">
+          <span class="picker-label">制限時間：</span>
+          <button type="button" class="diff-btn" data-diff="turtle">🐢 かめ</button>
+          <button type="button" class="diff-btn" data-diff="rabbit">🐰 うさぎ</button>
+          <button type="button" class="diff-btn" data-diff="cheetah">🐆 チーター</button>
+          <button type="button" class="diff-btn" data-diff="jet">✈️ ジェット</button>
+        </div>
+
+        <div id="typing-phase-badge" class="phase-badge"></div>
+
+        <div class="typing-prompt">
+          <div id="typing-hint-area"></div>
+          <div style="margin-top:.5rem;">
+            <span class="badge badge-subject" id="typing-badge-subject"></span>
+            <span class="badge badge-unit" id="typing-badge-unit"></span>
+          </div>
+        </div>
+
+        <div class="race-scene" id="race-scene">
+          <span class="race-cloud c1">☁️</span>
+          <span class="race-cloud c2">☁️</span>
+          <span class="race-start">START</span>
+          <span class="race-goal">🏁</span>
+          <div class="race-path"></div>
+          <span class="race-animal turtle" id="race-animal"><span class="race-animal-face">🐢</span></span>
+        </div>
+        <div class="timer-text" id="timer-text">準備中…</div>
+
+        <div class="typing-display" id="typing-display"></div>
+
+        <textarea class="typing-input" id="typing-input" rows="3"
+               autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+               placeholder="ここに入力"></textarea>
+
+        <div class="btn-row" style="justify-content:center;">
+          <button class="btn btn-secondary btn-sm" id="btn-skip">スキップ</button>
+          <button class="btn btn-secondary btn-sm" id="btn-quit-typing">終了</button>
+        </div>
+        <p class="keyboard-hints" id="typing-game-hints">
+          問題ごとに切り替え可　<kbd>Tab</kbd> スキップ　<kbd>Esc</kbd> 終了
+        </p>
+
+        <div id="score-result" style="display:none;" tabindex="-1"></div>
+      </div>
+    </section>
+
+    <!-- 辞書の読込・保存 -->
+    <section id="panel-settings" class="panel">
+      <div class="card">
+        <h2><img class="section-icon" src="dictypeimg.png" alt="" width="28" height="22"> 辞書の読込・保存</h2>
+        <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:.75rem;">
+          単語データはブラウザ内に自動保存されます。辞書ファイル（JSON形式）への書き出し・読み込みもできます。
+        </p>
+        <div class="file-actions">
+          <button class="btn btn-primary btn-sm" id="btn-export">辞書ファイル（JSON形式）に書き出し</button>
+          <button class="btn btn-secondary btn-sm" id="btn-import">辞書ファイル（JSON形式）から読み込み</button>
+          <button class="btn btn-secondary btn-sm" id="btn-link-file">辞書ファイルと連携（自動保存）</button>
+          <input type="file" id="file-import" accept=".json,application/json">
+        </div>
+      </div>
+    </section>
+
+    <!-- 忘れないコツ -->
+    <section id="panel-tips" class="panel">
+      <div class="card">
+        <h2>📖 忘れないコツ</h2>
+        <p style="font-size:.92rem;color:var(--text);margin-bottom:.75rem;line-height:1.7;">
+          新しい単語は、<strong>時間がたつと忘れやすい</strong>ものです。<br>
+          でも、<strong>忘れかける前にもう一度復習</strong>すると、長く覚えられます。
+        </p>
+
+        <div class="forget-steps">
+          <div class="forget-step">
+            <span class="forget-step-num">1</span>
+            <span>単語を覚える（今日）</span>
+          </div>
+          <div class="forget-step">
+            <span class="forget-step-num">2</span>
+            <span>忘れかける前にもう一度練習する（復習）</span>
+          </div>
+          <div class="forget-step">
+            <span class="forget-step-num">3</span>
+            <span>復習をくり返すと<strong>長期記憶</strong>になり、忘れるスピードがとても遅くなる</span>
+          </div>
+        </div>
+
+        <div class="memory-compare">
+          <div class="memory-box short">
+            <h4>📝 短期記憶</h4>
+            <p>覚えたばかりの状態。付箋（ふせん）のように、時間がたつとすぐ薄れやすい。</p>
+          </div>
+          <div class="memory-arrow">復習 →</div>
+          <div class="memory-box long">
+            <h4>🧠 長期記憶</h4>
+            <p>何度も復習すると、ノートに書いたように脳に残る。忘れにくく、長く覚えられる。</p>
+          </div>
+        </div>
+
+        <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:.5rem;text-align:center;">
+          このアプリの復習の間隔
+        </p>
+        <div class="review-schedule">
+          <span>1日後</span>
+          <span>3日後</span>
+          <span>1週間後</span>
+          <span>2週間後</span>
+          <span>1か月後</span>
+          <span>2か月後</span>
+        </div>
+
+        <div class="forgetting-chart-wrap">
+          <p style="font-size:.85rem;font-weight:600;text-align:center;margin-bottom:.5rem;color:var(--primary);">
+            くらべてみよう！
+          </p>
+          <svg id="forgetting-chart" viewBox="0 0 460 310" role="img" aria-label="忘れ方と復習のくらべグラフ"></svg>
+          <div class="chart-legend">
+            <span class="chart-legend-item">
+              <span class="chart-legend-line no-review"></span> 復習しない（忘れる）
+            </span>
+            <span class="chart-legend-item">
+              <span class="chart-legend-line with-review"></span> 復習する（定着する）
+            </span>
+            <span class="chart-legend-item">
+              <span class="chart-legend-dot"></span> 復習の日
+            </span>
+          </div>
+          <p class="chart-caption">
+            紫色の線は、復習するたびに<strong>下がり方がゆるやか</strong>になります。<br>
+            これが「長期記憶」に近づいているサインです。
+          </p>
+
+          <div class="chart-read-guide">
+            <h4>グラフの読み方</h4>
+            <ul>
+              <li><strong>灰色の線</strong>：復習しないと、下へ下へ落ちて、ほとんど忘れてしまう</li>
+              <li><strong>紫色の線</strong>：復習のたびに上に戻り、2回目・3回目は<strong>なだらか</strong>にしか下がらない</li>
+              <li>線がなだらか ＝ 忘れるのが遅い ＝ <strong>長期記憶</strong>に変わってきている</li>
+              <li>このグラフは4週間まで。このあとも<strong>1か月後・2か月後</strong>に復習して、さらに定着させる</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ===== 忘却曲線：復習間隔（日数） =====
+    const REVIEW_INTERVALS = [1, 3, 7, 14, 30, 60];
+
+    function renderForgettingChart() {
+      const svg = document.getElementById('forgetting-chart');
+      if (!svg) return;
+
+      const W = 460, H = 310;
+      const padL = 88, padR = 52, padT = 32, padB = 44;
+      const chartW = W - padL - padR;
+      const chartH = H - padT - padB;
+      const maxDay = 28;
+      const baseDecay = 2.2;
+      // 復習を重ねるほど、忘れるスピードが遅くなる（長期記憶化）
+      const STABILITIES = [2.2, 5, 12, 28];
+
+      const reviewDays = [0];
+      let cum = 0;
+      REVIEW_INTERVALS.forEach(d => {
+        cum += d;
+        if (cum <= maxDay) reviewDays.push(cum);
+      });
+
+      const reviewLabels = ['1日後', '3日後', '1週間後'];
+
+      function x(day) { return padL + (day / maxDay) * chartW; }
+      function y(ret) { return padT + chartH - (ret / 100) * chartH; }
+
+      function getSegment(day) {
+        let lastReview = 0;
+        let seg = 0;
+        for (let i = 0; i < reviewDays.length; i++) {
+          if (reviewDays[i] <= day) {
+            lastReview = reviewDays[i];
+            seg = i;
+          } else break;
+        }
+        return { lastReview, seg };
+      }
+
+      function retentionNoReview(day) {
+        return 100 * Math.exp(-day / baseDecay);
+      }
+
+      function retentionWithReview(day) {
+        const { lastReview, seg } = getSegment(day);
+        const stability = STABILITIES[Math.min(seg, STABILITIES.length - 1)];
+        return 100 * Math.exp(-(day - lastReview) / stability);
+      }
+
+      function buildPath(fn) {
+        let d = '';
+        for (let day = 0; day <= maxDay; day += 0.35) {
+          const px = x(day);
+          const py = y(fn(day));
+          d += (day === 0 ? 'M' : 'L') + px.toFixed(1) + ',' + py.toFixed(1);
+        }
+        return d;
+      }
+
+      const endWithReview = retentionWithReview(maxDay);
+      const endNoReview = retentionNoReview(maxDay);
+
+      const yLabels = [
+        { val: 100, text: 'バッチリ!' },
+        { val: 50, text: '半分くらい' },
+        { val: 0, text: '忘れちゃう' }
+      ];
+
+      let grid = '';
+      // 長期記憶ゾーン
+      grid += `<rect x="${padL}" y="${y(100)}" width="${chartW}" height="${y(65) - y(100)}" fill="#dcf5e8" opacity=".65" rx="4"/>`;
+      grid += `<text x="${W - padR + 4}" y="${y(82)}" font-size="10" fill="#24a366" font-weight="600">長期記憶</text>`;
+      grid += `<text x="${W - padR + 4}" y="${y(82) + 12}" font-size="9" fill="#24a366">に近い</text>`;
+
+      yLabels.forEach(({ val, text }) => {
+        const gy = y(val);
+        grid += `<line x1="${padL}" y1="${gy}" x2="${W - padR}" y2="${gy}" stroke="#9fd9b8" stroke-width="1.5"/>`;
+        grid += `<text x="${padL - 8}" y="${gy + 5}" text-anchor="end" font-size="12" fill="#3d7a5c" font-weight="600">${text}</text>`;
+      });
+
+      const xLabels = [
+        { day: 0, text: 'スタート' },
+        { day: 7, text: '1週間' },
+        { day: 14, text: '2週間' },
+        { day: 21, text: '3週間' },
+        { day: 28, text: '4週間' }
+      ];
+      xLabels.forEach(({ day, text }) => {
+        grid += `<text x="${x(day)}" y="${H - 10}" text-anchor="middle" font-size="12" fill="#3d7a5c" font-weight="600">${text}</text>`;
+      });
+
+      grid += `<text x="${padL + chartW / 2}" y="${H - 28}" text-anchor="middle" font-size="11" fill="#3d7a5c">時間がたつ →</text>`;
+
+      let reviewMarkers = '';
+      reviewDays.slice(1).forEach((day, i) => {
+        const rx = x(day);
+        reviewMarkers += `<line x1="${rx}" y1="${y(100)}" x2="${rx}" y2="${y(0)}" stroke="#2fb876" stroke-width="1.5" stroke-dasharray="4,4" opacity=".5"/>`;
+        reviewMarkers += `<circle cx="${rx}" cy="${y(100)}" r="7" fill="#2fb876"/>`;
+        reviewMarkers += `<text x="${rx}" y="${y(100) + 4}" text-anchor="middle" font-size="10" fill="#fff" font-weight="700">${i + 1}</text>`;
+        if (i < reviewLabels.length) {
+          reviewMarkers += `<text x="${rx}" y="${padT - 8}" text-anchor="middle" font-size="11" fill="#24a366" font-weight="600">${reviewLabels[i]}</text>`;
+        }
+      });
+
+      // ①の急な下がり / ③以降のゆるい下がり
+      const steepNote = `<text x="${x(2)}" y="${y(35)}" font-size="10" fill="#3d7a5c" font-weight="600">① 急に下がる</text>
+        <text x="${x(2)}" y="${y(35) + 12}" font-size="9" fill="#3d7a5c">（短期記憶）</text>`;
+      const flatNote = `<text x="${x(20)}" y="${y(58)}" font-size="10" fill="#2fb876" font-weight="600">③以降 ゆるやか</text>
+        <text x="${x(20)}" y="${y(58) + 12}" font-size="9" fill="#2fb876">（長期記憶へ）</text>`;
+
+      // 4週間時点の比較
+      const endMarkers = `
+        <circle cx="${x(maxDay)}" cy="${y(endWithReview)}" r="6" fill="#2fb876"/>
+        <text x="${x(maxDay) - 8}" y="${y(endWithReview) - 10}" text-anchor="end" font-size="10" fill="#2fb876" font-weight="600">まだ覚えてる</text>
+        <circle cx="${x(maxDay)}" cy="${y(endNoReview)}" r="5" fill="#78909c"/>
+        <text x="${x(maxDay) - 8}" y="${y(endNoReview) + 16}" text-anchor="end" font-size="10" fill="#78909c" font-weight="600">ほぼ忘れた</text>
+        <text x="${x(maxDay) + 2}" y="${y(15)}" font-size="9" fill="#3d7a5c">→ この後も</text>
+        <text x="${x(maxDay) + 2}" y="${y(15) + 11}" font-size="9" fill="#3d7a5c">1か月・2か月</text>
+        <text x="${x(maxDay) + 2}" y="${y(15) + 22}" font-size="9" fill="#3d7a5c">後に復習</text>`;
+
+      svg.innerHTML = `
+        <rect x="${padL}" y="${padT}" width="${chartW}" height="${chartH}" fill="#fff" rx="6"/>
+        ${grid}
+        <path d="${buildPath(retentionNoReview)}" fill="none" stroke="#78909c" stroke-width="3" stroke-dasharray="8,5" stroke-linecap="round"/>
+        <path d="${buildPath(retentionWithReview)}" fill="none" stroke="#2fb876" stroke-width="3" stroke-linecap="round"/>
+        ${reviewMarkers}
+        ${steepNote}
+        ${flatNote}
+        ${endMarkers}
+        <circle cx="${x(0)}" cy="${y(100)}" r="8" fill="#2fb876"/>
+        <text x="${x(0)}" y="${y(100) + 4}" text-anchor="middle" font-size="11" fill="#fff" font-weight="700">★</text>
+        <text x="${x(0)}" y="${padT - 8}" text-anchor="middle" font-size="11" fill="#2fb876" font-weight="600">覚えた!</text>
+      `;
+    }
+
+    // ===== データ =====
+    let store = loadStore();
+
+    function normalizeWord(w) {
+      if (!w.word && w.title) w.word = w.title;
+      if (!w.description && w.meaning) w.description = w.meaning;
+      return w;
+    }
+
+    function normalizeStore(data) {
+      if (!data.words) data.words = [];
+      data.words = data.words.map(normalizeWord);
+      return data;
+    }
+
+    function loadStore() {
+      try {
+        const raw = localStorage.getItem('dictionary_typing_data');
+        if (raw) return normalizeStore(JSON.parse(raw));
+      } catch (_) {}
+      return { words: [], version: 1 };
+    }
+
+    function saveStore() {
+      localStorage.setItem('dictionary_typing_data', JSON.stringify(store));
+      syncToJsonFile();
+    }
+
+    // JSONファイルへの自動同期（File System Access API）
+    let jsonFileHandle = null;
+
+    async function syncToJsonFile() {
+      if (!jsonFileHandle) return;
+      try {
+        const writable = await jsonFileHandle.createWritable();
+        await writable.write(JSON.stringify(store, null, 2));
+        await writable.close();
+      } catch (_) {
+        jsonFileHandle = null;
+      }
+    }
+
+    function generateId() {
+      return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+    }
+
+    function todayStr() {
+      return new Date().toISOString().slice(0, 10);
+    }
+
+    function addDays(dateStr, days) {
+      const d = new Date(dateStr + 'T12:00:00');
+      d.setDate(d.getDate() + days);
+      return d.toISOString().slice(0, 10);
+    }
+
+    function daysBetween(from, to) {
+      const a = new Date(from + 'T12:00:00');
+      const b = new Date(to + 'T12:00:00');
+      return Math.round((b - a) / 86400000);
+    }
+
+    // ===== 忘却曲線ロジック =====
+    function getNextReviewDate(word) {
+      const level = Math.min(word.reviewLevel || 0, REVIEW_INTERVALS.length - 1);
+      const base = word.lastReviewedAt || word.createdAt;
+      return addDays(base, REVIEW_INTERVALS[level]);
+    }
+
+    function getReviewPriority(word) {
+      const next = getNextReviewDate(word);
+      const today = todayStr();
+      const overdue = daysBetween(next, today);
+      if (overdue >= 0) return overdue + 100;
+      return -daysBetween(today, next);
+    }
+
+    function getRecommendedWords() {
+      return store.words
+        .map(w => ({ word: w, priority: getReviewPriority(w), next: getNextReviewDate(w) }))
+        .filter(x => getReviewPriority(x.word) >= 0 || daysBetween(todayStr(), x.next) <= 1)
+        .sort((a, b) => b.priority - a.priority);
+    }
+
+    function recordReview(word, score) {
+      const today = todayStr();
+      if (!word.reviews) word.reviews = [];
+      word.reviews.push({ date: today, score });
+
+      const passed = score >= 60;
+      if (passed) {
+        word.reviewLevel = Math.min((word.reviewLevel || 0) + 1, REVIEW_INTERVALS.length - 1);
+      } else {
+        word.reviewLevel = Math.max((word.reviewLevel || 0) - 1, 0);
+      }
+
+      word.lastReviewedAt = today;
+      word.nextReviewDate = getNextReviewDate(word);
+      saveStore();
+    }
+
+    // ===== UI: ナビゲーション =====
+    document.querySelectorAll('nav button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('panel-' + btn.dataset.panel).classList.add('active');
+        refreshUI();
+      });
+    });
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    // ===== UI: 更新 =====
+    function getSubjects() {
+      return [...new Set(store.words.map(w => w.subject))].sort();
+    }
+
+    function getUnits(subject) {
+      const words = subject ? store.words.filter(w => w.subject === subject) : store.words;
+      return [...new Set(words.map(w => w.unit))].sort();
+    }
+
+    function fillSelect(selectId, items, allLabel) {
+      const sel = document.getElementById(selectId);
+      const val = sel.value;
+      sel.innerHTML = `<option value="">${allLabel || 'すべて'}</option>`;
+      items.forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item;
+        opt.textContent = item;
+        sel.appendChild(opt);
+      });
+      if ([...sel.options].some(o => o.value === val)) sel.value = val;
+    }
+
+    function fillDatalists() {
+      const subjects = getSubjects();
+      const subjectList = document.getElementById('subject-list');
+      subjectList.innerHTML = subjects.map(s => `<option value="${esc(s)}">`).join('');
+
+      const subject = document.getElementById('input-subject').value;
+      const units = getUnits(subject || null);
+      document.getElementById('unit-list').innerHTML = units.map(u => `<option value="${esc(u)}">`).join('');
+    }
+
+    function esc(s) {
+      return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+    }
+
+    function refreshHome() {
+      document.getElementById('stat-total').textContent = store.words.length;
+
+      const due = store.words.filter(w => getReviewPriority(w) >= 0).length;
+      document.getElementById('stat-due').textContent = due;
+
+      const mastered = store.words.filter(w => (w.reviewLevel || 0) >= 4).length;
+      document.getElementById('stat-mastered').textContent = mastered;
+
+      const list = document.getElementById('review-list');
+      const recommended = getRecommendedWords().slice(0, 10);
+
+      if (recommended.length === 0) {
+        list.innerHTML = `<div class="empty-state"><div class="icon">🎉</div><p>わすれかけている単語はありません。<br>新しい単語を追加するか、タイピング練習をしよう！</p></div>`;
+        return;
+      }
+
+      list.innerHTML = recommended.map(({ word, next }) => {
+        const today = todayStr();
+        const overdue = daysBetween(next, today);
+        let badge = '';
+        if (overdue >= 0) badge = `<span class="badge badge-due">${overdue === 0 ? '今日復習' : overdue + '日超過'}</span>`;
+        else badge = `<span class="badge badge-soon">あと${-overdue}日</span>`;
+        return `<div class="word-item">
+          <div>
+            <h3>${esc(word.word)}</h3>
+            <p>${esc(word.description)}</p>
+            <div class="word-meta">
+              <span class="badge badge-subject">${esc(word.subject)}</span>
+              <span class="badge badge-unit">${esc(word.unit)}</span>
+              ${badge}
+            </div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="startReviewWord('${word.id}')">復習</button>
+        </div>`;
+      }).join('');
+    }
+
+    function refreshWordList() {
+      const subject = document.getElementById('filter-subject').value;
+      const unit = document.getElementById('filter-unit').value;
+      let words = store.words;
+      if (subject) words = words.filter(w => w.subject === subject);
+      if (unit) words = words.filter(w => w.unit === unit);
+
+      const list = document.getElementById('word-list');
+      if (words.length === 0) {
+        list.innerHTML = `<div class="empty-state"><div class="icon">📭</div><p>単語がありません</p></div>`;
+        return;
+      }
+
+      list.innerHTML = words.map(w => {
+        const next = getNextReviewDate(w);
+        return `<div class="word-item">
+          <div>
+            <h3>${esc(w.word)}</h3>
+            <p>${esc(w.description)}</p>
+            <div class="word-meta">
+              <span class="badge badge-subject">${esc(w.subject)}</span>
+              <span class="badge badge-unit">${esc(w.unit)}</span>
+              登録: ${w.createdAt} / 次回復習: ${next}
+            </div>
+          </div>
+          <button class="btn btn-danger btn-sm" onclick="deleteWord('${w.id}')">削除</button>
+        </div>`;
+      }).join('');
+    }
+
+    function refreshUI() {
+      fillSelect('filter-subject', getSubjects());
+      fillSelect('typing-subject', getSubjects());
+      const filterSubject = document.getElementById('filter-subject').value;
+      fillSelect('filter-unit', getUnits(filterSubject || null));
+      const typingSubject = document.getElementById('typing-subject').value;
+      fillSelect('typing-unit', getUnits(typingSubject || null));
+      fillDatalists();
+      refreshHome();
+      refreshWordList();
+    }
+
+    // ===== 単語追加 =====
+    function createWordEntry(wordText, description, subject, unit) {
+      const today = todayStr();
+      return {
+        id: generateId(),
+        word: wordText,
+        description,
+        subject,
+        unit,
+        createdAt: today,
+        lastReviewedAt: today,
+        reviewLevel: 0,
+        nextReviewDate: addDays(today, REVIEW_INTERVALS[0]),
+        reviews: [{ date: today, type: 'registered' }]
+      };
+    }
+
+    const EXCEL_COLUMN_KEYS = {
+      '単語': 'word',
+      'word': 'word',
+      '説明': 'description',
+      'description': 'description',
+      '意味': 'description',
+      '教科': 'subject',
+      'subject': 'subject',
+      '単元': 'unit',
+      'unit': 'unit'
+    };
+
+    function parseExcelRows(rows) {
+      if (!rows || rows.length === 0) return [];
+
+      const normalize = v => String(v == null ? '' : v).trim();
+      let startRow = 0;
+      const colIndex = { word: 0, description: 1, subject: 2, unit: 3 };
+
+      const first = rows[0].map(normalize);
+      const mapped = {};
+      first.forEach((cell, i) => {
+        const key = EXCEL_COLUMN_KEYS[cell] || EXCEL_COLUMN_KEYS[cell.toLowerCase()];
+        if (key) mapped[key] = i;
+      });
+
+      if (mapped.word !== undefined) {
+        startRow = 1;
+        Object.assign(colIndex, mapped);
+      }
+
+      const result = [];
+      for (let r = startRow; r < rows.length; r++) {
+        const row = rows[r] || [];
+        const word = normalize(row[colIndex.word]);
+        const description = normalize(row[colIndex.description]);
+        const subject = normalize(row[colIndex.subject]);
+        const unit = normalize(row[colIndex.unit]);
+        if (!word && !description && !subject && !unit) continue;
+        if (!word || !description || !subject || !unit) continue;
+        result.push({ word, description, subject, unit });
+      }
+      return result;
+    }
+
+    function importWordsFromExcelRows(rows) {
+      const parsed = parseExcelRows(rows);
+      if (parsed.length === 0) return 0;
+      parsed.forEach(item => {
+        store.words.push(createWordEntry(item.word, item.description, item.subject, item.unit));
+      });
+      saveStore();
+      refreshUI();
+      return parsed.length;
+    }
+
+    document.getElementById('add-form').addEventListener('submit', e => {
+      e.preventDefault();
+      const wordText = document.getElementById('input-title').value.trim();
+      const description = document.getElementById('input-meaning').value.trim();
+      const subject = document.getElementById('input-subject').value.trim();
+      const unit = document.getElementById('input-unit').value.trim();
+      if (!wordText || !description || !subject || !unit) return;
+
+      store.words.push(createWordEntry(wordText, description, subject, unit));
+      saveStore();
+      e.target.reset();
+      showToast('「' + wordText + '」を登録しました');
+      refreshUI();
+    });
+
+    document.getElementById('btn-excel-template').addEventListener('click', () => {
+      if (typeof XLSX === 'undefined') {
+        showToast('エクセル機能を読み込めませんでした');
+        return;
+      }
+      const ws = XLSX.utils.aoa_to_sheet([
+        ['単語', '説明', '教科', '単元'],
+        ['光合成', '植物が光のエネルギーを使って、二酸化炭素と水からデンプンなどを作るはたらき。', '理科', '植物'],
+        ['民主主義', '国民が政治に参加し、自分たちで国や社会の決め方を選ぶ仕組み。', '社会', '政治']
+      ]);
+      ws['!cols'] = [{ wch: 14 }, { wch: 40 }, { wch: 10 }, { wch: 10 }];
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, '単語');
+      XLSX.writeFile(wb, '単語テンプレート.xlsx');
+      showToast('テンプレートをダウンロードしました');
+    });
+
+    document.getElementById('btn-excel-import').addEventListener('click', () => {
+      document.getElementById('file-excel-import').click();
+    });
+
+    document.getElementById('file-excel-import').addEventListener('change', e => {
+      const file = e.target.files[0];
+      e.target.value = '';
+      if (!file) return;
+      if (typeof XLSX === 'undefined') {
+        showToast('エクセル機能を読み込めませんでした');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = ev => {
+        try {
+          const wb = XLSX.read(ev.target.result, { type: 'array' });
+          const sheet = wb.Sheets[wb.SheetNames[0]];
+          const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+          const count = importWordsFromExcelRows(rows);
+          if (count === 0) {
+            showToast('登録できる行がありません。見出しと4列を確認してください');
+          } else {
+            showToast(count + ' 件の単語をエクセルから登録しました');
+          }
+        } catch (_) {
+          showToast('エクセルファイルを読み込めませんでした');
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    });
+
+    document.getElementById('input-subject').addEventListener('input', fillDatalists);
+    document.getElementById('filter-subject').addEventListener('change', () => {
+      fillSelect('filter-unit', getUnits(document.getElementById('filter-subject').value || null));
+      refreshWordList();
+    });
+    document.getElementById('filter-unit').addEventListener('change', refreshWordList);
+    document.getElementById('typing-subject').addEventListener('change', () => {
+      fillSelect('typing-unit', getUnits(document.getElementById('typing-subject').value || null));
+      typingWordDeck = [];
+      typingDeckKey = '';
+    });
+    document.getElementById('typing-unit').addEventListener('change', () => {
+      typingWordDeck = [];
+      typingDeckKey = '';
+    });
+
+    window.deleteWord = function(id) {
+      if (!confirm('この単語を削除しますか？')) return;
+      store.words = store.words.filter(w => w.id !== id);
+      saveStore();
+      refreshUI();
+      showToast('削除しました');
+    };
+
+    // ===== タイピング =====
+    let typingState = null;
+    let timerInterval = null;
+
+    function getTypingMode() {
+      return document.getElementById('typing-mode').value;
+    }
+
+    // 制限時間：遅い順 → かめ → うさぎ → チーター → ジェット
+    const DIFFICULTY = {
+      turtle: { perChar: 3.5, min: 12, extra: 6, label: 'かめ', emoji: '🐢' },
+      rabbit: { perChar: 1.8, min: 6, extra: 3, label: 'うさぎ', emoji: '🐰' },
+      cheetah: { perChar: 1.2, min: 5, extra: 2, label: 'チーター', emoji: '🐆' },
+      jet: { perChar: 0.75, min: 4, extra: 1, label: 'ジェット', emoji: '✈️' }
+    };
+
+    let selectedDifficulty = null;
+
+    let pendingWord = null;
+
+    let typingWordDeck = [];
+    let typingDeckKey = '';
+
+    function getTypingPool() {
+      const subject = document.getElementById('typing-subject').value;
+      const unit = document.getElementById('typing-unit').value;
+      let pool = store.words;
+      if (subject) pool = pool.filter(w => w.subject === subject);
+      if (unit) pool = pool.filter(w => w.unit === unit);
+      return pool;
+    }
+
+    function getTypingDeckKey() {
+      const subject = document.getElementById('typing-subject').value;
+      const unit = document.getElementById('typing-unit').value;
+      return `${subject}\0${unit}`;
+    }
+
+    function shuffleIds(ids) {
+      const a = [...ids];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function resetTypingDeck() {
+      const pool = getTypingPool();
+      typingDeckKey = getTypingDeckKey();
+      typingWordDeck = shuffleIds(pool.map(w => w.id));
+    }
+
+    function removeFromTypingDeck(id) {
+      typingWordDeck = typingWordDeck.filter(wid => wid !== id);
+    }
+
+    function ensureTypingDeck() {
+      const pool = getTypingPool();
+      const poolIds = new Set(pool.map(w => w.id));
+      typingWordDeck = typingWordDeck.filter(id => poolIds.has(id));
+
+      const key = getTypingDeckKey();
+      if (key !== typingDeckKey) {
+        resetTypingDeck();
+      }
+    }
+
+    function finishTypingSession() {
+      clearInterval(timerInterval);
+      typingState = null;
+      pendingWord = null;
+      typingWordDeck = [];
+      typingDeckKey = '';
+      document.getElementById('typing-input').disabled = true;
+      document.getElementById('typing-game').style.display = 'block';
+      document.getElementById('typing-setup').style.display = 'none';
+      const result = document.getElementById('score-result');
+      result.style.display = 'block';
+      result.innerHTML = `<div class="score-result great">
+        <div style="font-size:2rem;margin-bottom:.25rem;">🎉</div>
+        <div class="score-label" style="font-size:1.15rem;font-weight:700;margin-bottom:.5rem;">全問終了！お疲れさま！</div>
+        <p style="font-size:.88rem;color:var(--text-muted);">すべての問題に挑戦しました</p>
+        <p class="keyboard-hints" style="margin-top:1rem;"><kbd>Esc</kbd> メニューに戻る</p>
+        <div class="btn-row" style="justify-content:center;margin-top:1rem;">
+          <button class="btn btn-primary btn-sm" id="btn-back-setup-done">メニューに戻る</button>
+        </div>
+      </div>`;
+      document.getElementById('btn-back-setup-done').addEventListener('click', quitTyping);
+      result.focus();
+      showToast('全問終了！');
+    }
+
+    function setDifficulty(value) {
+      if (!DIFFICULTY[value]) return;
+      selectedDifficulty = value;
+      document.querySelectorAll('.diff-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.diff === value);
+      });
+      saveDifficultyPref();
+      if (pendingWord) {
+        beginTypingSession(pendingWord.word, pendingWord.mode);
+        pendingWord = null;
+        return;
+      }
+      if (typingState && !typingState.finished) {
+        applyDifficultyChange();
+      }
+    }
+
+    function getDifficulty() {
+      return selectedDifficulty;
+    }
+
+    function saveDifficultyPref() {
+      if (selectedDifficulty) {
+        localStorage.setItem('typing_difficulty', selectedDifficulty);
+      }
+    }
+
+    function loadDifficultyPref() {
+      const saved = localStorage.getItem('typing_difficulty');
+      if (saved && DIFFICULTY[saved]) setDifficulty(saved);
+    }
+
+    function initDifficultyButtons() {
+      document.querySelectorAll('.diff-btn').forEach(btn => {
+        btn.addEventListener('click', () => setDifficulty(btn.dataset.diff));
+      });
+    }
+
+    function applyDifficultyChange() {
+      if (!typingState || typingState.finished) return;
+      typingState.difficulty = selectedDifficulty;
+      typingState.timeLimit = getTimeLimit(typingState.target);
+      typingState.phaseStartTime = Date.now();
+      updateRaceAnimal();
+      updateTypingUI();
+    }
+
+    function jetRaceHtml() {
+      return `<span class="jet-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 48" aria-hidden="true">
+        <g fill="#cbd5e1" opacity=".55">
+          <circle cx="10" cy="20" r="3"/>
+          <circle cx="6" cy="24" r="2"/>
+          <circle cx="9" cy="28" r="2.5"/>
+        </g>
+        <path fill="#24a366" d="M14 24 L6 10 L6 38 Z"/>
+        <rect x="14" y="15" width="52" height="18" rx="9" fill="#2fb876"/>
+        <path fill="#6dd9a0" d="M66 15 L88 24 L66 33 Z"/>
+        <ellipse cx="44" cy="36" rx="20" ry="5" fill="#6dd9a0"/>
+        <ellipse cx="58" cy="22" rx="7" ry="5" fill="#dcf5e8" opacity=".9"/>
+      </svg></span>`;
+    }
+
+    function updateRaceAnimal() {
+      const diff = DIFFICULTY[typingState.difficulty];
+      const animal = document.getElementById('race-animal');
+      if (typingState.difficulty === 'jet') {
+        animal.innerHTML = jetRaceHtml();
+      } else {
+        animal.innerHTML = `<span class="race-animal-face">${diff.emoji}</span>`;
+      }
+      animal.className = 'race-animal ' + typingState.difficulty;
+      animal.style.left = '4%';
+      animal.style.bottom = typingState.difficulty === 'jet' ? '52px' : '30px';
+      document.getElementById('race-scene').classList.remove('overtime');
+    }
+
+    function getTimeLimit(text) {
+      const d = DIFFICULTY[getDifficulty()] || DIFFICULTY.turtle;
+      const len = [...text].length;
+      return Math.max(d.min, Math.ceil(len * d.perChar) + d.extra);
+    }
+
+    function calcScore(target, elapsed, input, timeLimit) {
+      const targetChars = [...target];
+      const inputChars = [...input];
+      let correct = 0;
+      for (let i = 0; i < inputChars.length; i++) {
+        if (inputChars[i] === targetChars[i]) correct++;
+      }
+      const accuracy = targetChars.length > 0 ? correct / targetChars.length : 0;
+      let timeScore;
+      if (elapsed <= timeLimit) {
+        timeScore = 1;
+      } else {
+        const over = elapsed - timeLimit;
+        timeScore = Math.max(0.1, 1 - over * 0.05);
+      }
+      const complete = input === target;
+      const completeBonus = complete ? 1 : accuracy;
+      return Math.round(accuracy * 50 + timeScore * 30 + completeBonus * 20);
+    }
+
+    function renderTypingDisplay(target, input) {
+      const targetChars = [...target];
+      const inputChars = [...input];
+      let html = '';
+      for (let i = 0; i < targetChars.length; i++) {
+        let cls = '';
+        if (i < inputChars.length) {
+          cls = inputChars[i] === targetChars[i] ? 'char-correct' : 'char-wrong';
+        } else if (i === inputChars.length) {
+          cls = 'char-current';
+        }
+        const ch = targetChars[i];
+        html += `<span class="${cls}">${ch === '\n' ? '↵<br>' : esc(ch)}</span>`;
+      }
+      return html || '&nbsp;';
+    }
+
+    function renderRecallDisplay(target, input) {
+      const targetChars = [...target];
+      const inputChars = [...input];
+      let html = '';
+      for (let i = 0; i < targetChars.length; i++) {
+        let cls = 'char-mask';
+        let ch = '□';
+        if (i < inputChars.length) {
+          cls = inputChars[i] === targetChars[i] ? 'char-correct' : 'char-wrong';
+          ch = inputChars[i] === '\n' ? '↵' : inputChars[i];
+        } else if (i === inputChars.length) {
+          cls = 'char-current';
+        }
+        html += `<span class="${cls}">${esc(ch)}</span>`;
+      }
+      return html || '&nbsp;';
+    }
+
+    function getInitialPhase(mode) {
+      if (mode === 'recall-then-type') return 'recall';
+      return mode === 'description' ? 'description' : 'word';
+    }
+
+    function isWordTypingPhase(phase) {
+      return phase === 'word' || phase === 'type-word';
+    }
+
+    function setupTypingPhase() {
+      const { word, phase, mode } = typingState;
+      const isRecall = phase === 'recall';
+      const isWordPhase = isWordTypingPhase(phase);
+
+      typingState.target = isRecall || isWordPhase ? word.word : word.description;
+      typingState.input = '';
+      typingState.phaseStartTime = Date.now();
+      typingState.timeLimit = getTimeLimit(typingState.target);
+      typingState.difficulty = getDifficulty();
+
+      updateRaceAnimal();
+
+      const badge = document.getElementById('typing-phase-badge');
+      const hintArea = document.getElementById('typing-hint-area');
+      const inputEl = document.getElementById('typing-input');
+      const displayEl = document.getElementById('typing-display');
+
+      if (mode === 'both') {
+        badge.style.display = 'inline-block';
+        badge.textContent = isWordPhase ? '1 / 2　単語を入力' : '2 / 2　説明を入力';
+      } else if (mode === 'recall-then-type') {
+        badge.style.display = 'inline-block';
+        badge.textContent = isRecall ? '1 / 2　思い出して入力' : '2 / 2　タイピング練習';
+      } else {
+        badge.style.display = 'inline-block';
+        badge.textContent = isWordPhase ? '単語を入力' : '説明を入力';
+      }
+
+      if (isRecall) {
+        hintArea.innerHTML = `
+          <div class="prompt-label">説明を読んで、単語を思い出して入力</div>
+          <div class="hint-box"><div class="hint-text">${esc(word.description)}</div></div>
+          <p style="font-size:.85rem;color:var(--text-muted);text-align:center;margin-top:.25rem;">
+            正解するとそのまま次の問題へ。時間切れの場合はタイピング練習のあと次の問題へ進みます
+          </p>`;
+        inputEl.className = 'typing-input short';
+        inputEl.rows = 2;
+        inputEl.placeholder = '思い出した単語を入力';
+        displayEl.classList.remove('long-text');
+      } else if (isWordPhase) {
+        hintArea.innerHTML = `
+          <div class="prompt-label">ヒント：説明</div>
+          <div class="hint-box"><div class="hint-text">${esc(word.description)}</div></div>
+          <div class="prompt-label">入力する単語</div>
+          <div class="word-title" style="text-align:center;font-size:1.3rem;color:var(--primary);font-weight:700;">${esc(word.word)}</div>`;
+        inputEl.className = 'typing-input short';
+        inputEl.rows = 2;
+        inputEl.placeholder = '単語を入力';
+        displayEl.classList.remove('long-text');
+      } else {
+        hintArea.innerHTML = `
+          <div class="prompt-label">ヒント：単語</div>
+          <div class="hint-box"><div class="hint-text word-hint">${esc(word.word)}</div></div>
+          <div class="prompt-label">入力する説明</div>`;
+        inputEl.className = 'typing-input long';
+        inputEl.rows = 5;
+        inputEl.placeholder = '説明を入力';
+        displayEl.classList.toggle('long-text', [...typingState.target].length > 30);
+      }
+
+      inputEl.value = '';
+      inputEl.disabled = false;
+      composing = false;
+      inputEl.focus();
+      updateTypingUI();
+      startTimer();
+    }
+
+    function beginTypingSession(word, mode) {
+      typingState = {
+        word,
+        mode,
+        phase: getInitialPhase(mode),
+        phaseScores: [],
+        finished: false
+      };
+      document.getElementById('typing-phase-badge').style.display = 'inline-block';
+      document.getElementById('typing-badge-subject').textContent = word.subject;
+      document.getElementById('typing-badge-unit').textContent = word.unit;
+      setupTypingPhase();
+    }
+
+    function startTyping(word) {
+      const mode = getTypingMode();
+      document.getElementById('typing-setup').style.display = 'none';
+      document.getElementById('typing-game').style.display = 'block';
+      document.getElementById('score-result').style.display = 'none';
+
+      if (!getDifficulty()) {
+        pendingWord = { word, mode };
+        typingState = null;
+        clearInterval(timerInterval);
+        document.getElementById('typing-phase-badge').style.display = 'none';
+        document.getElementById('typing-hint-area').innerHTML =
+          '<p style="text-align:center;padding:1rem;color:var(--text-muted);">👆 制限時間（🐢🐰🐆✈️）を選ぶとスタート</p>';
+        document.getElementById('typing-badge-subject').textContent = word.subject;
+        document.getElementById('typing-badge-unit').textContent = word.unit;
+        document.getElementById('typing-input').value = '';
+        document.getElementById('typing-input').disabled = true;
+        document.getElementById('typing-display').innerHTML = '&nbsp;';
+        document.getElementById('timer-text').textContent = '制限時間の動物を選んでください';
+        document.getElementById('race-animal').style.left = '4%';
+        document.getElementById('race-scene').classList.remove('overtime');
+        return;
+      }
+
+      pendingWord = null;
+      beginTypingSession(word, mode);
+    }
+
+    function updateTypingUI() {
+      if (!typingState) return;
+      const { target, input, timeLimit, phaseStartTime, difficulty, mode, phase } = typingState;
+      const elapsed = (Date.now() - phaseStartTime) / 1000;
+      const remaining = timeLimit - elapsed;
+      const diff = DIFFICULTY[difficulty || 'turtle'];
+
+      const displayEl = document.getElementById('typing-display');
+      if (phase === 'recall') {
+        displayEl.innerHTML = renderRecallDisplay(target, input);
+      } else {
+        displayEl.innerHTML = renderTypingDisplay(target, input);
+      }
+      displayEl.classList.toggle('long-text', [...target].length > 30);
+
+      const progress = Math.min(1.05, elapsed / timeLimit);
+      const trackStart = 4;
+      const trackEnd = 82;
+      const animalLeft = trackStart + progress * (trackEnd - trackStart);
+      const animal = document.getElementById('race-animal');
+      animal.style.left = animalLeft + '%';
+
+      const scene = document.getElementById('race-scene');
+      const isOvertime = remaining <= 0;
+      scene.classList.toggle('overtime', isOvertime);
+      animal.classList.toggle('overtime', isOvertime);
+
+      const timerText = document.getElementById('timer-text');
+      if (phase === 'recall' && isOvertime) {
+        timerText.innerHTML = `<span class="animal-name">${diff.emoji}${diff.label}</span> がゴール！　タイピングモードへ切り替え…`;
+        timerText.className = 'timer-text overtime';
+      } else if (remaining > 0) {
+        const urgency = remaining <= 3 ? '　急げ！' : '';
+        const phaseHint = phase === 'recall' ? '（思い出し）' : '';
+        timerText.innerHTML = `<span class="animal-name">${diff.emoji}${diff.label}</span> がゴールまで `
+          + `あと ${remaining.toFixed(1)} 秒${urgency}${phaseHint}（制限 ${Math.round(timeLimit)} 秒）`;
+        timerText.className = 'timer-text' + (remaining <= 3 ? ' overtime' : '');
+      } else {
+        timerText.innerHTML = `<span class="animal-name">${diff.emoji}${diff.label}</span> がゴール到着！ `
+          + `+${(-remaining).toFixed(1)}秒（入力は続けられます）`;
+        timerText.className = 'timer-text overtime';
+      }
+
+      if (mode === 'recall-then-type' && phase === 'recall' && remaining <= 0 && !typingState.recallEnded) {
+        if (input === target) finishRecallSuccess();
+        else finishRecallTimeout();
+      }
+    }
+
+    function advanceAfterRecallRound(excludeId, score) {
+      if (typingState && typingState.word) {
+        recordReview(typingState.word, score);
+      }
+      const wordId = typingState && typingState.word ? typingState.word.id : excludeId;
+      typingState = null;
+      clearInterval(timerInterval);
+      document.getElementById('score-result').style.display = 'none';
+      document.getElementById('typing-input').disabled = false;
+      pickRandomWord(wordId);
+    }
+
+    function finishRecallSuccess() {
+      if (!typingState || typingState.finished || typingState.recallEnded) return;
+      typingState.recallEnded = true;
+      typingState.finished = true;
+      const elapsed = (Date.now() - typingState.phaseStartTime) / 1000;
+      const score = calcScore(typingState.target, elapsed, typingState.input, typingState.timeLimit);
+      showToast('思い出せた！');
+      advanceAfterRecallRound(typingState.word.id, score);
+    }
+
+    function finishRecallTimeout() {
+      if (!typingState || typingState.finished || typingState.recallEnded) return;
+      typingState.recallEnded = true;
+      const elapsed = (Date.now() - typingState.phaseStartTime) / 1000;
+      const score = calcScore(typingState.target, elapsed, typingState.input, typingState.timeLimit);
+      typingState.phaseScores.push(score);
+      typingState.phase = 'type-word';
+      showToast('タイピングモードへ！');
+      setupTypingPhase();
+    }
+
+    function startTimer() {
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        if (!typingState || typingState.finished) return;
+        updateTypingUI();
+      }, 100);
+    }
+
+    function finishPhase() {
+      if (!typingState || typingState.finished) return;
+
+      const elapsed = (Date.now() - typingState.phaseStartTime) / 1000;
+      const score = calcScore(typingState.target, elapsed, typingState.input, typingState.timeLimit);
+      const { mode, phase } = typingState;
+
+      typingState.phaseScores.push(score);
+
+      if (mode === 'both' && phase === 'word') {
+        typingState.phase = 'description';
+        setupTypingPhase();
+        return;
+      }
+
+      finishTyping();
+    }
+
+    function finishTyping() {
+      if (!typingState || typingState.finished) return;
+      typingState.finished = true;
+      clearInterval(timerInterval);
+
+      const scores = typingState.phaseScores;
+
+      if (typingState.mode === 'recall-then-type') {
+        const score = scores.length > 0 ? scores[scores.length - 1] : 0;
+        document.getElementById('typing-input').disabled = true;
+        advanceAfterRecallRound(typingState.word.id, score);
+        return;
+      }
+
+      const score = scores.length > 0
+        ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
+        : 0;
+      recordReview(typingState.word, score);
+
+      document.getElementById('typing-input').disabled = true;
+
+      let cls = 'great', label = '素晴らしい！';
+      if (score < 60) { cls = 'low'; label = 'もう一度挑戦しよう'; }
+      else if (score < 85) { cls = 'good'; label = 'Good!'; }
+
+      let detail = '';
+      if (typingState.mode === 'both' && scores.length === 2) {
+        detail = `単語 ${scores[0]}点 / 説明 ${scores[1]}点`;
+      }
+
+      const result = document.getElementById('score-result');
+      result.style.display = 'block';
+      result.innerHTML = `<div class="score-result ${cls}">
+        <div class="score-num">${score}</div>
+        <div>点</div>
+        <div class="score-label">${label}${detail ? '<br>' + detail : ''}</div>
+        <p class="keyboard-hints"><kbd>Enter</kbd> 次の問題　<kbd>Esc</kbd> メニューに戻る</p>
+        <div class="btn-row" style="justify-content:center;margin-top:1rem;">
+          <button class="btn btn-primary btn-sm" id="btn-next">次の問題 (Enter)</button>
+          <button class="btn btn-secondary btn-sm" id="btn-back-setup">メニュー (Esc)</button>
+        </div>
+      </div>`;
+
+      document.getElementById('btn-next').addEventListener('click', () => goToNextWord());
+      document.getElementById('btn-back-setup').addEventListener('click', () => quitTyping());
+      result.focus();
+      refreshUI();
+    }
+
+    function goToNextWord() {
+      pickRandomWord();
+    }
+
+    function skipCurrentWord() {
+      if (!typingState || typingState.finished) return;
+      clearInterval(timerInterval);
+      recordReview(typingState.word, 0);
+      pickRandomWord(typingState.word.id);
+    }
+
+    function isTypingPanelActive() {
+      return document.getElementById('panel-typing').classList.contains('active');
+    }
+
+    function isTypingSetupVisible() {
+      return document.getElementById('typing-setup').style.display !== 'none';
+    }
+
+    function isScoreVisible() {
+      return document.getElementById('score-result').style.display !== 'none';
+    }
+
+    function startTypingFromSetup() {
+      if (store.words.length === 0) {
+        showToast('先に単語を登録してください');
+        return;
+      }
+      if (!getDifficulty()) {
+        showToast('制限時間を選んでください');
+        return;
+      }
+      resetTypingDeck();
+      pickRandomWord();
+    }
+
+    function pickRandomWord(excludeId) {
+      const pool = getTypingPool();
+      if (pool.length === 0) {
+        showToast('該当する単語がありません');
+        quitTyping();
+        return;
+      }
+
+      ensureTypingDeck();
+
+      if (excludeId) removeFromTypingDeck(excludeId);
+
+      if (typingWordDeck.length === 0) {
+        finishTypingSession();
+        return;
+      }
+
+      const wordId = typingWordDeck.shift();
+      const word = pool.find(w => w.id === wordId);
+      if (!word) {
+        pickRandomWord(excludeId);
+        return;
+      }
+      startTyping(word);
+    }
+
+    function quitTyping() {
+      clearInterval(timerInterval);
+      typingState = null;
+      pendingWord = null;
+      typingWordDeck = [];
+      typingDeckKey = '';
+      document.getElementById('score-result').style.display = 'none';
+      document.getElementById('typing-setup').style.display = 'block';
+      document.getElementById('typing-game').style.display = 'none';
+    }
+
+    document.getElementById('btn-start-typing').addEventListener('click', startTypingFromSetup);
+
+    document.addEventListener('keydown', e => {
+      if (!isTypingPanelActive()) return;
+
+      if (isScoreVisible() && !typingState) {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          quitTyping();
+        }
+        return;
+      }
+
+      if (isScoreVisible() && typingState && typingState.finished) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          goToNextWord();
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          quitTyping();
+        }
+        return;
+      }
+
+      if (typingState && !typingState.finished) {
+        if (e.key === 'Tab') {
+          e.preventDefault();
+          skipCurrentWord();
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          quitTyping();
+        }
+        return;
+      }
+
+      if (isTypingSetupVisible() && e.key === 'Enter') {
+        const tag = e.target.tagName;
+        if (tag === 'SELECT' || tag === 'TEXTAREA' || tag === 'BUTTON') return;
+        e.preventDefault();
+        startTypingFromSetup();
+      }
+    });
+
+    let composing = false;
+
+    function handleTypingInput(value) {
+      if (!typingState || typingState.finished || composing) return;
+      typingState.input = value;
+      updateTypingUI();
+      if (typingState.input === typingState.target) {
+        if (typingState.mode === 'recall-then-type' && typingState.phase === 'recall') {
+          finishRecallSuccess();
+          return;
+        }
+        finishPhase();
+      }
+    }
+
+    document.getElementById('typing-input').addEventListener('keydown', e => {
+      if (e.key === 'Enter' && typingState && !typingState.finished && !composing
+          && !typingState.target.includes('\n')) {
+        e.preventDefault();
+      }
+    });
+    document.getElementById('typing-input').addEventListener('compositionstart', () => {
+      composing = true;
+    });
+    document.getElementById('typing-input').addEventListener('compositionend', e => {
+      composing = false;
+      handleTypingInput(e.target.value);
+    });
+    document.getElementById('typing-input').addEventListener('input', e => {
+      if (composing) return;
+      handleTypingInput(e.target.value);
+    });
+
+    document.getElementById('btn-skip').addEventListener('click', skipCurrentWord);
+
+    document.getElementById('btn-quit-typing').addEventListener('click', quitTyping);
+
+    window.startReviewWord = function(id) {
+      const word = store.words.find(w => w.id === id);
+      if (!word) return;
+      document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      document.querySelector('[data-panel="typing"]').classList.add('active');
+      document.getElementById('panel-typing').classList.add('active');
+      removeFromTypingDeck(id);
+      startTyping(word);
+    };
+
+    // ===== 辞書ファイル入出力 =====
+    document.getElementById('btn-export').addEventListener('click', () => {
+      const blob = new Blob([JSON.stringify(store, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = '辞書.json';
+      a.click();
+      URL.revokeObjectURL(a.href);
+      showToast('辞書ファイルをダウンロードしました');
+    });
+
+    document.getElementById('btn-import').addEventListener('click', () => {
+      document.getElementById('file-import').click();
+    });
+
+    document.getElementById('file-import').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        try {
+          const data = normalizeStore(JSON.parse(ev.target.result));
+          if (!data.words || !Array.isArray(data.words)) throw new Error('invalid');
+          store = data;
+          saveStore();
+          refreshUI();
+          showToast('辞書ファイルから ' + data.words.length + ' 件読み込みました');
+        } catch (_) {
+          showToast('辞書ファイルの形式が正しくありません');
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = '';
+    });
+
+    // File System Access API: 辞書ファイルへの自動保存（対応ブラウザのみ）
+    async function tryLinkJsonFile() {
+      if (!('showSaveFilePicker' in window)) return;
+      try {
+        jsonFileHandle = await window.showSaveFilePicker({
+          suggestedName: '辞書.json',
+          types: [{ description: '辞書ファイル（JSON形式）', accept: { 'application/json': ['.json'] } }]
+        });
+        await syncToJsonFile();
+        showToast('辞書ファイルと連携しました。以降自動保存されます。');
+      } catch (_) {}
+    }
+
+    // 初回起動時に words.json を fetch で試みる（ローカルサーバー使用時）
+    async function tryLoadWordsJson() {
+      try {
+        const res = await fetch('words.json');
+        if (!res.ok) return;
+        const data = normalizeStore(await res.json());
+        if (data.words && data.words.length > 0 && store.words.length === 0) {
+          store = data;
+          saveStore();
+        }
+      } catch (_) {}
+    }
+
+    document.getElementById('btn-link-file').addEventListener('click', tryLinkJsonFile);
+
+    // 初期化
+    tryLoadWordsJson().then(refreshUI);
+    initDifficultyButtons();
+    loadDifficultyPref();
+    renderForgettingChart();
+  </script>
+</body>
+</html>

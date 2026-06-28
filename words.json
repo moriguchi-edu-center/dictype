@@ -1,0 +1,117 @@
+{
+  "version": 1,
+  "words": [
+    {
+      "id": "rika-001",
+      "word": "光合成",
+      "description": "植物が光のエネルギーを使って、二酸化炭素と水からデンプンなどを作るはたらき。",
+      "subject": "理科",
+      "unit": "植物",
+      "createdAt": "2026-06-28",
+      "lastReviewedAt": "2026-06-28",
+      "reviewLevel": 0,
+      "nextReviewDate": "2026-06-29",
+      "reviews": [
+        { "date": "2026-06-28", "type": "registered" }
+      ]
+    },
+    {
+      "id": "rika-002",
+      "word": "蒸散",
+      "description": "植物の葉から水蒸気が出ていくはたらき。水の通り道は気孔。",
+      "subject": "理科",
+      "unit": "植物",
+      "createdAt": "2026-06-28",
+      "lastReviewedAt": "2026-06-28",
+      "reviewLevel": 0,
+      "nextReviewDate": "2026-06-29",
+      "reviews": [
+        { "date": "2026-06-28", "type": "registered" }
+      ]
+    },
+    {
+      "id": "rika-003",
+      "word": "消化",
+      "description": "食べ物を体に吸収しやすい形に変えるはたらき。",
+      "subject": "理科",
+      "unit": "動物",
+      "createdAt": "2026-06-28",
+      "lastReviewedAt": "2026-06-28",
+      "reviewLevel": 0,
+      "nextReviewDate": "2026-06-29",
+      "reviews": [
+        { "date": "2026-06-28", "type": "registered" }
+      ]
+    },
+    {
+      "id": "shakai-001",
+      "word": "民主主義",
+      "description": "国民が政治に参加し、自分たちで国や社会の決め方を選ぶ仕組み。",
+      "subject": "社会",
+      "unit": "政治",
+      "createdAt": "2026-06-28",
+      "lastReviewedAt": "2026-06-28",
+      "reviewLevel": 0,
+      "nextReviewDate": "2026-06-29",
+      "reviews": [
+        { "date": "2026-06-28", "type": "registered" }
+      ]
+    },
+    {
+      "id": "shakai-002",
+      "word": "三権分立",
+      "description": "立法・行政・司法の三つの権力を分けて、お互いにチェックする仕組み。",
+      "subject": "社会",
+      "unit": "政治",
+      "createdAt": "2026-06-28",
+      "lastReviewedAt": "2026-06-28",
+      "reviewLevel": 0,
+      "nextReviewDate": "2026-06-29",
+      "reviews": [
+        { "date": "2026-06-28", "type": "registered" }
+      ]
+    },
+    {
+      "id": "kokugo-001",
+      "word": "比喩",
+      "description": "あるものを別のものに例えて表現する修辞法。直喩と隠喩がある。",
+      "subject": "国語",
+      "unit": "表現",
+      "createdAt": "2026-06-28",
+      "lastReviewedAt": "2026-06-28",
+      "reviewLevel": 0,
+      "nextReviewDate": "2026-06-29",
+      "reviews": [
+        { "date": "2026-06-28", "type": "registered" }
+      ]
+    },
+    {
+      "id": "kokugo-002",
+      "word": "主語",
+      "description": "文の中で「だれが」「なにが」と、動作や状態の主体を表す文の要素。",
+      "subject": "国語",
+      "unit": "文法",
+      "createdAt": "2026-06-28",
+      "lastReviewedAt": "2026-06-28",
+      "reviewLevel": 0,
+      "nextReviewDate": "2026-06-29",
+      "reviews": [
+        { "date": "2026-06-28", "type": "registered" }
+      ]
+    },
+    {
+      "id": "sugaku-001",
+      "word": "比例",
+      "description": "一方が何倍・何分の1になると、もう一方も同じ倍数で変わる関係。",
+      "subject": "算数",
+      "unit": "割合",
+      "createdAt": "2026-06-28",
+      "lastReviewedAt": "2026-06-28",
+      "reviewLevel": 0,
+      "nextReviewDate": "2026-06-29",
+      "reviews": [
+        { "date": "2026-06-28", "type": "registered" }
+      ]
+    }
+  ]
+}
