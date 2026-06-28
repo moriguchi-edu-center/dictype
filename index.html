@@ -124,6 +124,19 @@
       gap: .4rem;
     }
 
+    .card-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .75rem;
+      flex-wrap: wrap;
+      margin-bottom: .75rem;
+    }
+
+    .card-header-row h2 {
+      margin-bottom: 0;
+    }
+
     .form-group { margin-bottom: 1rem; }
     .form-group label {
       display: block;
@@ -919,7 +932,10 @@
       </div>
 
       <div class="card">
-        <h2>🎯 わすれかけている単語</h2>
+        <div class="card-header-row">
+          <h2>🎯 わすれかけている単語</h2>
+          <button type="button" class="btn btn-primary btn-sm" id="btn-due-typing">忘れかけ単語でタイピング</button>
+        </div>
         <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:.75rem;">
           忘れかけのころに、もう一度練習すると覚えやすい単語です。
         </p>
