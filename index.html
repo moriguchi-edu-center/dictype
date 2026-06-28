@@ -2255,7 +2255,7 @@
       }
     }
 
-    function advanceAfterRecallRound(excludeId, score) {
+    function advanceAfterTypingRound(excludeId, score) {
       if (typingState && typingState.word) {
         recordReview(typingState.word, score);
       }
@@ -2264,7 +2264,19 @@
       clearInterval(timerInterval);
       document.getElementById('score-result').style.display = 'none';
       document.getElementById('typing-input').disabled = false;
+      refreshUI();
       pickRandomWord(wordId);
+    }
+
+    function showTypingScoreToast(score, scores, mode) {
+      let label = '素晴らしい！';
+      if (score < 60) label = 'もう一度挑戦しよう';
+      else if (score < 85) label = 'Good!';
+      let msg = `${label} ${score}点`;
+      if (mode === 'both' && scores.length === 2) {
+        msg += `（単語${scores[0]}/説明${scores[1]}）`;
+      }
+      showToast(msg);
     }
 
     function finishRecallSuccess() {
@@ -2274,7 +2286,7 @@
       const elapsed = (Date.now() - typingState.phaseStartTime) / 1000;
       const score = calcScore(typingState.target, elapsed, typingState.input, typingState.timeLimit);
       showToast('思い出せた！');
-      advanceAfterRecallRound(typingState.word.id, score);
+      advanceAfterTypingRound(typingState.word.id, score);
     }
 
     function finishRecallTimeout() {
@@ -2320,51 +2332,23 @@
       clearInterval(timerInterval);
 
       const scores = typingState.phaseScores;
+      const { mode, word } = typingState;
 
-      if (typingState.mode === 'recall-then-type') {
+      if (mode === 'recall-then-type') {
         const score = scores.length > 0 ? scores[scores.length - 1] : 0;
         document.getElementById('typing-input').disabled = true;
-        advanceAfterRecallRound(typingState.word.id, score);
+        showTypingScoreToast(score, scores, mode);
+        advanceAfterTypingRound(word.id, score);
         return;
       }
 
       const score = scores.length > 0
         ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
         : 0;
-      recordReview(typingState.word, score);
 
       document.getElementById('typing-input').disabled = true;
-
-      let cls = 'great', label = '素晴らしい！';
-      if (score < 60) { cls = 'low'; label = 'もう一度挑戦しよう'; }
-      else if (score < 85) { cls = 'good'; label = 'Good!'; }
-
-      let detail = '';
-      if (typingState.mode === 'both' && scores.length === 2) {
-        detail = `単語 ${scores[0]}点 / 説明 ${scores[1]}点`;
-      }
-
-      const result = document.getElementById('score-result');
-      result.style.display = 'block';
-      result.innerHTML = `<div class="score-result ${cls}">
-        <div class="score-num">${score}</div>
-        <div>点</div>
-        <div class="score-label">${label}${detail ? '<br>' + detail : ''}</div>
-        <p class="keyboard-hints"><kbd>Enter</kbd> 次の問題　<kbd>Esc</kbd> メニューに戻る</p>
-        <div class="btn-row" style="justify-content:center;margin-top:1rem;">
-          <button class="btn btn-primary btn-sm" id="btn-next">次の問題 (Enter)</button>
-          <button class="btn btn-secondary btn-sm" id="btn-back-setup">メニュー (Esc)</button>
-        </div>
-      </div>`;
-
-      document.getElementById('btn-next').addEventListener('click', () => goToNextWord());
-      document.getElementById('btn-back-setup').addEventListener('click', () => quitTyping());
-      result.focus();
-      refreshUI();
-    }
-
-    function goToNextWord() {
-      pickRandomWord();
+      showTypingScoreToast(score, scores, mode);
+      advanceAfterTypingRound(word.id, score);
     }
 
     function skipCurrentWord() {
@@ -2471,17 +2455,6 @@
 
       if (isScoreVisible() && !typingState) {
         if (e.key === 'Escape') {
-          e.preventDefault();
-          quitTyping();
-        }
-        return;
-      }
-
-      if (isScoreVisible() && typingState && typingState.finished) {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          goToNextWord();
-        } else if (e.key === 'Escape') {
           e.preventDefault();
           quitTyping();
         }
