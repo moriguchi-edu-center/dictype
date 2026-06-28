@@ -137,6 +137,22 @@
       margin-bottom: 0;
     }
 
+    .typing-due-banner {
+      background: var(--primary-pale);
+      border: 1px solid var(--primary-light);
+      border-radius: 8px;
+      padding: .85rem 1rem;
+      margin-bottom: 1rem;
+      font-size: .9rem;
+      line-height: 1.6;
+      color: var(--text);
+    }
+
+    .typing-due-banner strong {
+      color: var(--primary-dark);
+      font-size: 1.1rem;
+    }
+
     .form-group { margin-bottom: 1rem; }
     .form-group label {
       display: block;
@@ -1019,8 +1035,12 @@
     <!-- タイピング -->
     <section id="panel-typing" class="panel">
       <div class="card" id="typing-setup">
-        <h2>⌨️ タイピング練習</h2>
-        <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:1rem;">
+        <h2 id="typing-setup-title">⌨️ タイピング練習</h2>
+        <div id="typing-due-banner" class="typing-due-banner" style="display:none;">
+          忘れかけの単語 <strong id="typing-due-count">0</strong> 件で練習します。<br>
+          制限時間（🐢🐰🐆✈️）を選んでから開始してください。
+        </div>
+        <p id="typing-setup-intro" style="font-size:.85rem;color:var(--text-muted);margin-bottom:1rem;">
           単語と説明をタイピングしよう。制限時間は4つから自分で選べます。<br>
           「思い出し → タイピング」では、説明だけを見て単語を思い出します。正解すれば次の問題へ、時間切れならタイピング練習後に次の問題へ進みます。
         </p>
@@ -1042,7 +1062,7 @@
             <option value="recall-then-type">思い出し → タイピング（説明から単語）</option>
           </select>
         </div>
-        <div class="filter-row">
+        <div id="typing-normal-filters" class="filter-row">
           <div class="form-group">
             <label for="typing-subject">教科</label>
             <select id="typing-subject"><option value="">すべて</option></select>
@@ -1449,10 +1469,19 @@
     // ===== UI: ナビゲーション =====
     document.querySelectorAll('nav button').forEach(btn => {
       btn.addEventListener('click', () => {
+        if (btn.dataset.panel === 'typing' && !pendingDueTypingSetup) {
+          typingDueOnly = false;
+        }
         document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
         document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
         btn.classList.add('active');
         document.getElementById('panel-' + btn.dataset.panel).classList.add('active');
+        if (btn.dataset.panel === 'typing') {
+          document.getElementById('typing-setup').style.display = 'block';
+          document.getElementById('typing-game').style.display = 'none';
+          document.getElementById('score-result').style.display = 'none';
+          updateTypingSetupUI();
+        }
         refreshUI();
       });
     });
@@ -1766,6 +1795,35 @@
     let typingWordDeck = [];
     let typingDeckKey = '';
     let typingDueOnly = false;
+    let pendingDueTypingSetup = false;
+
+    function updateTypingSetupUI() {
+      const dueBanner = document.getElementById('typing-due-banner');
+      const intro = document.getElementById('typing-setup-intro');
+      const filters = document.getElementById('typing-normal-filters');
+      const modeGroup = document.getElementById('typing-mode').closest('.form-group');
+      const title = document.getElementById('typing-setup-title');
+      const startBtn = document.getElementById('btn-start-typing');
+      const dueCount = getDueWordsForTyping().length;
+
+      if (typingDueOnly) {
+        dueBanner.style.display = 'block';
+        document.getElementById('typing-due-count').textContent = dueCount;
+        intro.style.display = 'none';
+        filters.style.display = 'none';
+        modeGroup.style.display = '';
+        title.textContent = '🎯 忘れかけ単語でタイピング';
+        startBtn.textContent = '練習を開始';
+      } else {
+        dueBanner.style.display = 'none';
+        intro.style.display = '';
+        filters.style.display = '';
+        modeGroup.style.display = '';
+        title.textContent = '⌨️ タイピング練習';
+        startBtn.textContent = 'ランダム出題を開始';
+      }
+      pendingDueTypingSetup = false;
+    }
 
     function getTypingPool() {
       if (typingDueOnly) {
@@ -2281,7 +2339,14 @@
     }
 
     function startTypingFromSetup() {
-      if (store.words.length === 0) {
+      if (typingDueOnly) {
+        if (getDueWordsForTyping().length === 0) {
+          showToast('忘れかけの単語はありません');
+          typingDueOnly = false;
+          updateTypingSetupUI();
+          return;
+        }
+      } else if (store.words.length === 0) {
         showToast('先に単語を登録してください');
         return;
       }
@@ -2289,7 +2354,6 @@
         showToast('制限時間を選んでください');
         return;
       }
-      typingDueOnly = false;
       resetTypingDeck();
       pickRandomWord();
     }
@@ -2300,16 +2364,16 @@
         showToast('忘れかけの単語はありません');
         return;
       }
+      pendingDueTypingSetup = true;
       typingDueOnly = true;
       document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
       document.querySelector('[data-panel="typing"]').classList.add('active');
       document.getElementById('panel-typing').classList.add('active');
-      document.getElementById('typing-setup').style.display = 'none';
-      document.getElementById('typing-game').style.display = 'block';
+      document.getElementById('typing-setup').style.display = 'block';
+      document.getElementById('typing-game').style.display = 'none';
       document.getElementById('score-result').style.display = 'none';
-      resetTypingDeck();
-      pickRandomWord();
+      updateTypingSetupUI();
     }
 
     function pickRandomWord(excludeId) {
@@ -2348,6 +2412,7 @@
       document.getElementById('score-result').style.display = 'none';
       document.getElementById('typing-setup').style.display = 'block';
       document.getElementById('typing-game').style.display = 'none';
+      updateTypingSetupUI();
     }
 
     document.getElementById('btn-start-typing').addEventListener('click', startTypingFromSetup);
