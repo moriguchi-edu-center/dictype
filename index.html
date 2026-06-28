@@ -284,12 +284,29 @@
       background: #1e5c42;
       color: #b8f0d0;
       border-radius: var(--radius);
-      margin-bottom: 1rem;
+      margin-bottom: .75rem;
       min-height: 3rem;
       max-height: 12rem;
       overflow-y: auto;
       line-height: 1.8;
       word-break: break-all;
+    }
+
+    .typing-input-wrap {
+      margin-top: .75rem;
+      padding-bottom: 2.5rem;
+    }
+
+    .typing-race-area {
+      margin-top: .25rem;
+    }
+
+    .typing-race-area .timer-text {
+      margin-bottom: .5rem;
+    }
+
+    .typing-race-area .race-scene {
+      margin-bottom: 0;
     }
 
     .typing-display.long-text { font-size: 1rem; line-height: 1.7; }
@@ -537,7 +554,7 @@
       text-align: center;
       font-size: .9rem;
       color: var(--text-muted);
-      margin-bottom: 1rem;
+      margin-bottom: 0;
     }
 
     .timer-text.overtime { color: var(--danger); font-weight: 600; }
@@ -555,7 +572,7 @@
       text-align: left;
       border: 2px solid var(--border);
       border-radius: 8px;
-      margin-bottom: 1rem;
+      margin-bottom: 0;
       resize: vertical;
       min-height: 3rem;
     }
@@ -1041,16 +1058,16 @@
           制限時間（🐢🐰🐆✈️）を選んでから開始してください。
         </div>
         <p id="typing-setup-intro" style="font-size:.85rem;color:var(--text-muted);margin-bottom:1rem;">
-          単語と説明をタイピングしよう。制限時間は4つから自分で選べます。<br>
+          単語と説明をタイピングしよう。制限時間は4段階（🐢小中学年／🐰小高学年／🐆中学生／✈️大人）から選べます。<br>
           「思い出し → タイピング」では、説明だけを見て単語を思い出します。正解すれば次の問題へ、時間切れならタイピング練習後に次の問題へ進みます。
         </p>
         <div class="form-group">
           <label>制限時間</label>
           <div class="difficulty-picker-bar">
-            <button type="button" class="diff-btn" data-diff="turtle">🐢 かめ<br><small>ゆっくり</small></button>
-            <button type="button" class="diff-btn" data-diff="rabbit">🐰 うさぎ<br><small>普通</small></button>
-            <button type="button" class="diff-btn" data-diff="cheetah">🐆 チーター<br><small>早い</small></button>
-            <button type="button" class="diff-btn" data-diff="jet">✈️ ジェット<br><small>最速</small></button>
+            <button type="button" class="diff-btn" data-diff="turtle">🐢 小中学年<br><small>ゆっくり</small></button>
+            <button type="button" class="diff-btn" data-diff="rabbit">🐰 小高学年<br><small>ふつう</small></button>
+            <button type="button" class="diff-btn" data-diff="cheetah">🐆 中学生<br><small>はやい</small></button>
+            <button type="button" class="diff-btn" data-diff="jet">✈️ 大人<br><small>めちゃはや</small></button>
           </div>
         </div>
         <div class="form-group">
@@ -1079,10 +1096,10 @@
       <div class="card" id="typing-game" style="display:none;">
         <div class="difficulty-picker-bar game-picker">
           <span class="picker-label">制限時間：</span>
-          <button type="button" class="diff-btn" data-diff="turtle">🐢 かめ</button>
-          <button type="button" class="diff-btn" data-diff="rabbit">🐰 うさぎ</button>
-          <button type="button" class="diff-btn" data-diff="cheetah">🐆 チーター</button>
-          <button type="button" class="diff-btn" data-diff="jet">✈️ ジェット</button>
+          <button type="button" class="diff-btn" data-diff="turtle">🐢 小中学年</button>
+          <button type="button" class="diff-btn" data-diff="rabbit">🐰 小高学年</button>
+          <button type="button" class="diff-btn" data-diff="cheetah">🐆 中学生</button>
+          <button type="button" class="diff-btn" data-diff="jet">✈️ 大人</button>
         </div>
 
         <div id="typing-phase-badge" class="phase-badge"></div>
@@ -1095,21 +1112,26 @@
           </div>
         </div>
 
-        <div class="race-scene" id="race-scene">
-          <span class="race-cloud c1">☁️</span>
-          <span class="race-cloud c2">☁️</span>
-          <span class="race-start">START</span>
-          <span class="race-goal">🏁</span>
-          <div class="race-path"></div>
-          <span class="race-animal turtle" id="race-animal"><span class="race-animal-face">🐢</span></span>
-        </div>
-        <div class="timer-text" id="timer-text">準備中…</div>
-
         <div class="typing-display" id="typing-display"></div>
 
-        <textarea class="typing-input" id="typing-input" rows="3"
-               autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
-               placeholder="ここに入力"></textarea>
+        <div class="typing-race-area">
+          <div class="timer-text" id="timer-text">準備中…</div>
+
+          <div class="race-scene" id="race-scene">
+            <span class="race-cloud c1">☁️</span>
+            <span class="race-cloud c2">☁️</span>
+            <span class="race-start">START</span>
+            <span class="race-goal">🏁</span>
+            <div class="race-path"></div>
+            <span class="race-animal turtle" id="race-animal"><span class="race-animal-face">🐢</span></span>
+          </div>
+        </div>
+
+        <div class="typing-input-wrap">
+          <textarea class="typing-input" id="typing-input" rows="3"
+                 autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+                 placeholder="ここに入力"></textarea>
+        </div>
 
         <div class="btn-row" style="justify-content:center;">
           <button class="btn btn-secondary btn-sm" id="btn-skip">スキップ</button>
@@ -1780,13 +1802,33 @@
       return document.getElementById('typing-mode').value;
     }
 
-    // 制限時間：遅い順 → かめ → うさぎ → チーター → ジェット
+    // 制限時間：小中学年(ゆっくり) → 小高学年(ふつう) → 中学生(はやい) → 大人(めちゃはや)
     const DIFFICULTY = {
-      turtle: { perChar: 3.5, min: 12, extra: 6, label: 'かめ', emoji: '🐢' },
-      rabbit: { perChar: 1.8, min: 6, extra: 3, label: 'うさぎ', emoji: '🐰' },
-      cheetah: { perChar: 1.2, min: 5, extra: 2, label: 'チーター', emoji: '🐆' },
-      jet: { perChar: 0.75, min: 4, extra: 1, label: 'ジェット', emoji: '✈️' }
+      turtle: {
+        label: 'かめ', emoji: '🐢', grade: '小中学年', speed: 'ゆっくり',
+        word: { perChar: 8, min: 30, extra: 14 },
+        desc: { perChar: 4, min: 18, extra: 8 }
+      },
+      rabbit: {
+        label: 'うさぎ', emoji: '🐰', grade: '小高学年', speed: 'ふつう',
+        word: { perChar: 4.5, min: 16, extra: 8 },
+        desc: { perChar: 2.8, min: 12, extra: 6 }
+      },
+      cheetah: {
+        label: 'チーター', emoji: '🐆', grade: '中学生', speed: 'はやい',
+        word: { perChar: 3.2, min: 12, extra: 5 },
+        desc: { perChar: 2, min: 9, extra: 4 }
+      },
+      jet: {
+        label: 'ジェット', emoji: '✈️', grade: '大人', speed: 'めちゃはや',
+        word: { perChar: 2, min: 8, extra: 3 },
+        desc: { perChar: 1.2, min: 6, extra: 2 }
+      }
     };
+
+    function formatDiffName(diff) {
+      return `${diff.emoji}${diff.grade}（${diff.speed}）`;
+    }
 
     let selectedDifficulty = null;
 
@@ -1942,7 +1984,7 @@
     function applyDifficultyChange() {
       if (!typingState || typingState.finished) return;
       typingState.difficulty = selectedDifficulty;
-      typingState.timeLimit = getTimeLimit(typingState.target);
+      typingState.timeLimit = getTimeLimit(typingState.target, typingState.isWordTiming);
       typingState.phaseStartTime = Date.now();
       updateRaceAnimal();
       updateTypingUI();
@@ -1977,10 +2019,15 @@
       document.getElementById('race-scene').classList.remove('overtime');
     }
 
-    function getTimeLimit(text) {
+    function getDifficultyConfig(isWord) {
       const d = DIFFICULTY[getDifficulty()] || DIFFICULTY.turtle;
+      return isWord ? d.word : d.desc;
+    }
+
+    function getTimeLimit(text, isWord) {
+      const cfg = getDifficultyConfig(isWord);
       const len = [...text].length;
-      return Math.max(d.min, Math.ceil(len * d.perChar) + d.extra);
+      return Math.max(cfg.min, Math.ceil(len * cfg.perChar) + cfg.extra);
     }
 
     function calcScore(target, elapsed, input, timeLimit) {
@@ -2053,9 +2100,10 @@
       const isWordPhase = isWordTypingPhase(phase);
 
       typingState.target = isRecall || isWordPhase ? word.word : word.description;
+      typingState.isWordTiming = isRecall || isWordPhase;
       typingState.input = '';
       typingState.phaseStartTime = Date.now();
-      typingState.timeLimit = getTimeLimit(typingState.target);
+      typingState.timeLimit = getTimeLimit(typingState.target, typingState.isWordTiming);
       typingState.difficulty = getDifficulty();
 
       updateRaceAnimal();
@@ -2148,7 +2196,7 @@
         document.getElementById('typing-input').value = '';
         document.getElementById('typing-input').disabled = true;
         document.getElementById('typing-display').innerHTML = '&nbsp;';
-        document.getElementById('timer-text').textContent = '制限時間の動物を選んでください';
+        document.getElementById('timer-text').textContent = '制限時間を選んでください';
         document.getElementById('race-animal').style.left = '4%';
         document.getElementById('race-scene').classList.remove('overtime');
         return;
@@ -2187,16 +2235,16 @@
 
       const timerText = document.getElementById('timer-text');
       if (phase === 'recall' && isOvertime) {
-        timerText.innerHTML = `<span class="animal-name">${diff.emoji}${diff.label}</span> がゴール！　タイピングモードへ切り替え…`;
+        timerText.innerHTML = `<span class="animal-name">${formatDiffName(diff)}</span> がゴール！　タイピングモードへ切り替え…`;
         timerText.className = 'timer-text overtime';
       } else if (remaining > 0) {
         const urgency = remaining <= 3 ? '　急げ！' : '';
         const phaseHint = phase === 'recall' ? '（思い出し）' : '';
-        timerText.innerHTML = `<span class="animal-name">${diff.emoji}${diff.label}</span> がゴールまで `
+        timerText.innerHTML = `<span class="animal-name">${formatDiffName(diff)}</span> がゴールまで `
           + `あと ${remaining.toFixed(1)} 秒${urgency}${phaseHint}（制限 ${Math.round(timeLimit)} 秒）`;
         timerText.className = 'timer-text' + (remaining <= 3 ? ' overtime' : '');
       } else {
-        timerText.innerHTML = `<span class="animal-name">${diff.emoji}${diff.label}</span> がゴール到着！ `
+        timerText.innerHTML = `<span class="animal-name">${formatDiffName(diff)}</span> がゴール到着！ `
           + `+${(-remaining).toFixed(1)}秒（入力は続けられます）`;
         timerText.className = 'timer-text overtime';
       }
