@@ -1058,16 +1058,16 @@
           制限時間（🐢🐰🐆✈️）を選んでから開始してください。
         </div>
         <p id="typing-setup-intro" style="font-size:.85rem;color:var(--text-muted);margin-bottom:1rem;">
-          単語と説明をタイピングしよう。制限時間は4段階（🐢小中学年／🐰小高学年／🐆中学生／✈️大人）から選べます。<br>
+          単語と説明をタイピングしよう。制限時間は4段階（🐢かめ／🐰うさぎ／🐆チーター／✈️ジェット）から選べます。<br>
           「思い出し → タイピング」では、説明だけを見て単語を思い出します。正解すれば次の問題へ、時間切れならタイピング練習後に次の問題へ進みます。
         </p>
         <div class="form-group">
           <label>制限時間</label>
           <div class="difficulty-picker-bar">
-            <button type="button" class="diff-btn" data-diff="turtle">🐢 小中学年<br><small>ゆっくり</small></button>
-            <button type="button" class="diff-btn" data-diff="rabbit">🐰 小高学年<br><small>ふつう</small></button>
-            <button type="button" class="diff-btn" data-diff="cheetah">🐆 中学生<br><small>はやい</small></button>
-            <button type="button" class="diff-btn" data-diff="jet">✈️ 大人<br><small>めちゃはや</small></button>
+            <button type="button" class="diff-btn" data-diff="turtle">🐢 かめ<br><small>ゆっくり</small></button>
+            <button type="button" class="diff-btn" data-diff="rabbit">🐰 うさぎ<br><small>ふつう</small></button>
+            <button type="button" class="diff-btn" data-diff="cheetah">🐆 チーター<br><small>はやい</small></button>
+            <button type="button" class="diff-btn" data-diff="jet">✈️ ジェット<br><small>めちゃはや</small></button>
           </div>
         </div>
         <div class="form-group">
@@ -1096,10 +1096,10 @@
       <div class="card" id="typing-game" style="display:none;">
         <div class="difficulty-picker-bar game-picker">
           <span class="picker-label">制限時間：</span>
-          <button type="button" class="diff-btn" data-diff="turtle">🐢 小中学年</button>
-          <button type="button" class="diff-btn" data-diff="rabbit">🐰 小高学年</button>
-          <button type="button" class="diff-btn" data-diff="cheetah">🐆 中学生</button>
-          <button type="button" class="diff-btn" data-diff="jet">✈️ 大人</button>
+          <button type="button" class="diff-btn" data-diff="turtle">🐢 かめ</button>
+          <button type="button" class="diff-btn" data-diff="rabbit">🐰 うさぎ</button>
+          <button type="button" class="diff-btn" data-diff="cheetah">🐆 チーター</button>
+          <button type="button" class="diff-btn" data-diff="jet">✈️ ジェット</button>
         </div>
 
         <div id="typing-phase-badge" class="phase-badge"></div>
@@ -1802,7 +1802,7 @@
       return document.getElementById('typing-mode').value;
     }
 
-    // 制限時間：小中学年(ゆっくり) → 小高学年(ふつう) → 中学生(はやい) → 大人(めちゃはや)
+    // 制限時間：かめ(ゆっくり) → うさぎ(ふつう) → チーター(はやい) → ジェット(めちゃはや)
     const DIFFICULTY = {
       turtle: {
         label: 'かめ', emoji: '🐢', grade: '小中学年', speed: 'ゆっくり',
@@ -1811,23 +1811,23 @@
       },
       rabbit: {
         label: 'うさぎ', emoji: '🐰', grade: '小高学年', speed: 'ふつう',
-        word: { perChar: 4.5, min: 16, extra: 8 },
-        desc: { perChar: 2.8, min: 12, extra: 6 }
+        word: { perChar: 5, min: 22, extra: 10 },
+        desc: { perChar: 2.4, min: 14, extra: 5 }
       },
       cheetah: {
         label: 'チーター', emoji: '🐆', grade: '中学生', speed: 'はやい',
-        word: { perChar: 3.2, min: 12, extra: 5 },
-        desc: { perChar: 2, min: 9, extra: 4 }
+        word: { perChar: 2.5, min: 11, extra: 4 },
+        desc: { perChar: 1.4, min: 8, extra: 2 }
       },
       jet: {
         label: 'ジェット', emoji: '✈️', grade: '大人', speed: 'めちゃはや',
-        word: { perChar: 2, min: 8, extra: 3 },
-        desc: { perChar: 1.2, min: 6, extra: 2 }
+        word: { perChar: 1.5, min: 6, extra: 2 },
+        desc: { perChar: 0.9, min: 5, extra: 2 }
       }
     };
 
     function formatDiffName(diff) {
-      return `${diff.emoji}${diff.grade}（${diff.speed}）`;
+      return `${diff.emoji}${diff.label}（${diff.speed}）`;
     }
 
     let selectedDifficulty = null;
