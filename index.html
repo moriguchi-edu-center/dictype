@@ -178,7 +178,12 @@
     }
 
     .btn-primary { background: var(--primary); color: white; }
-    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-primary:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+
+    .btn-primary:hover:not(:disabled) { background: var(--primary-dark); }
     .btn-secondary { background: var(--bg); color: var(--text); border: 2px solid var(--border); }
     .btn-secondary:hover { border-color: var(--primary-light); }
     .btn-danger { background: var(--danger); color: white; }
@@ -1420,6 +1425,10 @@
         .sort((a, b) => b.priority - a.priority);
     }
 
+    function getDueWordsForTyping() {
+      return getRecommendedWords().map(x => x.word);
+    }
+
     function recordReview(word, score) {
       const today = todayStr();
       if (!word.reviews) word.reviews = [];
@@ -1503,6 +1512,8 @@
 
       const list = document.getElementById('review-list');
       const recommended = getRecommendedWords().slice(0, 10);
+      const btnDueTyping = document.getElementById('btn-due-typing');
+      btnDueTyping.disabled = getDueWordsForTyping().length === 0;
 
       if (recommended.length === 0) {
         list.innerHTML = `<div class="empty-state"><div class="icon">🎉</div><p>わすれかけている単語はありません。<br>新しい単語を追加するか、タイピング練習をしよう！</p></div>`;
@@ -1754,8 +1765,12 @@
 
     let typingWordDeck = [];
     let typingDeckKey = '';
+    let typingDueOnly = false;
 
     function getTypingPool() {
+      if (typingDueOnly) {
+        return getDueWordsForTyping();
+      }
       const subject = document.getElementById('typing-subject').value;
       const unit = document.getElementById('typing-unit').value;
       let pool = store.words;
@@ -1765,6 +1780,7 @@
     }
 
     function getTypingDeckKey() {
+      if (typingDueOnly) return '\0due-only';
       const subject = document.getElementById('typing-subject').value;
       const unit = document.getElementById('typing-unit').value;
       return `${subject}\0${unit}`;
@@ -1804,6 +1820,8 @@
       clearInterval(timerInterval);
       typingState = null;
       pendingWord = null;
+      const wasDueOnly = typingDueOnly;
+      typingDueOnly = false;
       typingWordDeck = [];
       typingDeckKey = '';
       document.getElementById('typing-input').disabled = true;
@@ -1814,7 +1832,7 @@
       result.innerHTML = `<div class="score-result great">
         <div style="font-size:2rem;margin-bottom:.25rem;">🎉</div>
         <div class="score-label" style="font-size:1.15rem;font-weight:700;margin-bottom:.5rem;">全問終了！お疲れさま！</div>
-        <p style="font-size:.88rem;color:var(--text-muted);">すべての問題に挑戦しました</p>
+        <p style="font-size:.88rem;color:var(--text-muted);">${wasDueOnly ? '忘れかけ単語をすべて練習しました' : 'すべての問題に挑戦しました'}</p>
         <p class="keyboard-hints" style="margin-top:1rem;"><kbd>Esc</kbd> メニューに戻る</p>
         <div class="btn-row" style="justify-content:center;margin-top:1rem;">
           <button class="btn btn-primary btn-sm" id="btn-back-setup-done">メニューに戻る</button>
@@ -2271,6 +2289,25 @@
         showToast('制限時間を選んでください');
         return;
       }
+      typingDueOnly = false;
+      resetTypingDeck();
+      pickRandomWord();
+    }
+
+    function startDueTyping() {
+      const dueWords = getDueWordsForTyping();
+      if (dueWords.length === 0) {
+        showToast('忘れかけの単語はありません');
+        return;
+      }
+      typingDueOnly = true;
+      document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      document.querySelector('[data-panel="typing"]').classList.add('active');
+      document.getElementById('panel-typing').classList.add('active');
+      document.getElementById('typing-setup').style.display = 'none';
+      document.getElementById('typing-game').style.display = 'block';
+      document.getElementById('score-result').style.display = 'none';
       resetTypingDeck();
       pickRandomWord();
     }
@@ -2305,6 +2342,7 @@
       clearInterval(timerInterval);
       typingState = null;
       pendingWord = null;
+      typingDueOnly = false;
       typingWordDeck = [];
       typingDeckKey = '';
       document.getElementById('score-result').style.display = 'none';
@@ -2313,6 +2351,7 @@
     }
 
     document.getElementById('btn-start-typing').addEventListener('click', startTypingFromSetup);
+    document.getElementById('btn-due-typing').addEventListener('click', startDueTyping);
 
     document.addEventListener('keydown', e => {
       if (!isTypingPanelActive()) return;
@@ -2395,10 +2434,14 @@
     window.startReviewWord = function(id) {
       const word = store.words.find(w => w.id === id);
       if (!word) return;
+      typingDueOnly = false;
       document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
       document.querySelector('[data-panel="typing"]').classList.add('active');
       document.getElementById('panel-typing').classList.add('active');
+      document.getElementById('typing-setup').style.display = 'none';
+      document.getElementById('typing-game').style.display = 'block';
+      document.getElementById('score-result').style.display = 'none';
       removeFromTypingDeck(id);
       startTyping(word);
     };
